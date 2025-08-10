@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Calendario Iglesia 2025</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #a7d9f5;
+        margin: 0;
+        padding: 0;
+    }
+    h1 {
+        text-align: center;
+        font-size: 2em;
+        margin-top: 20px;
+    }
+    main {
+        max-width: 900px;
+        margin: auto;
+        padding: 20px;
+    }
+    iframe {
+        width: 100%;
+        height: 600px;
+        border: 0;
+        margin-bottom: 20px;
+    }
+    .btn {
+        display: inline-block;
+        padding: 10px 15px;
+        margin: 5px;
+        border-radius: 15px;
+        text-decoration: none;
+        font-weight: bold;
+        color: white;
+    }
+    .btn-android {
+        background-color: #4285F4;
+    }
+    .btn-ios {
+        background-color: #34C759;
+    }
+    .info-box {
+        background-color: #b8e1f9;
+        border: 1px solid #6ba9c7;
+        padding: 10px;
+        margin-top: 20px;
+        font-size: 0.9em;
+    }
+</style>
+</head>
+<body>
+
+<main>
+    <h1>Calendario Iglesia - Agosto 2025</h1>
+
+    <iframe src="https://calendar.google.com/calendar/embed?src=72086005a3ac9a324642e6977fb8f296d531c3520b03c6cf342495ed215e0186%40group.calendar.google.com&ctz=America%2FPuerto_Rico"></iframe>
+
+    <a id="btn-gcal" href="#" class="btn btn-android">Agregar en Android / Google Calendar</a>
+    <a id="btn-ios" href="webcal://p158-caldav.icloud.com/published/2/MTYyMzg4NDUwMjAxNjIzOFc_RCw-iCOSeM_LMqkWZcQMuX9sTzZF-PyrU9d06Oy4V0VhxUSZVqCmqzUsygyCHgAllfl2DFW34WcFi8EvPD8" class="btn btn-ios">Agregar en iOS / Apple Calendar</a>
+
+    <div class="info-box">
+        📅 Si ya tienes tu cuenta de Google agregada en tu iPhone o Android, activa la sincronización de calendarios desde:<br>
+        <strong>Ajustes > Calendario > Cuentas</strong>.<br>
+        Cualquier cambio en Google Calendar se reflejará automáticamente en tu app de Calendario nativa.
+    </div>
+</main>
+
+<script>
+document.getElementById("btn-ios").addEventListener("click", function(event) {
+    event.preventDefault();
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const url = "webcal://p158-caldav.icloud.com/published/2/MTYyMzg4NDUwMjAxNjIzOFc_RCw-iCOSeM_LMqkWZcQMuX9sTzZF-PyrU9d06Oy4V0VhxUSZVqCmqzUsygyCHgAllfl2DFW34WcFi8EvPD8";
+
+    if (window.self !== window.top && isIOS) {
+        window.top.location.href = url;
+    } else {
+        window.location.href = url;
+    }
+    setTimeout(function() {
+        alert("Si no se abrió el calendario, copia y pega este enlace en Safari:\n" + url);
+    }, 2500);
+});
+
+const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+const isAndroid = /Android/i.test(navigator.userAgent);
+
+document.getElementById("btn-gcal").addEventListener("click", function (event) {
+    event.preventDefault();
+
+    if (isAndroid) {
+        const intentUrl = "intent://calendar.google.com/calendar/u/0?cid=72086005a3ac9a324642e6977fb8f296d531c3520b03c6cf342495ed215e0186%40group.calendar.google.com#Intent;scheme=https;package=com.google.android.calendar;end";
+        const playStore = "https://play.google.com/store/apps/details?id=com.google.android.calendar";
+
+        if (window.self !== window.top) {
+            window.top.location.href = intentUrl;
+        } else {
+            window.location.href = intentUrl;
+        }
+
+        setTimeout(function () {
+            if (window.self !== window.top) {
+                window.top.location.href = playStore;
+            } else {
+                window.location.href = playStore;
+            }
+        }, 2000);
+
+    } else if (isIOS) { 
+        const gcalIOS = "comgooglecalendar://";
+        const appStore = "https://apps.apple.com/app/google-calendar/id909319292";
+
+        if (window.self !== window.top) {
+            window.top.location.href = gcalIOS;
+        } else {
+            window.location.href = gcalIOS;
+        }
+
+        setTimeout(function () {
+            const altScheme = "googlecalendar://";
+            if (window.self !== window.top) {
+                window.top.location.href = altScheme;
+            } else {
+                window.location.href = altScheme;
+            }
+        }, 600);
+
+        setTimeout(function () {
+            if (window.self !== window.top) {
+                window.top.location.href = appStore;
+            } else {
+                window.location.href = appStore;
+            }
+        }, 2000);
+    }
+});
+</script>
+
+</body>
+</html>
