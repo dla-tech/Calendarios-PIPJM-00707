@@ -8,7 +8,10 @@
 <style>
     body {
         font-family: Arial, sans-serif;
-        background-image:https://raw.githubusercontent.com/dla-tech/Media-privada/refs/heads/main/2025-04-13-17-10-05-878.jpeg;
+        background-image: url("https://raw.githubusercontent.com/dla-tech/Media-privada/refs/heads/main/2025-04-13-17-10-05-878.jpeg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
         margin: 0;
         padding: 0;
     }
@@ -26,7 +29,17 @@
         width: 100%;
         height: 600px;
         border: 0;
+        margin: 0;
+        display: block;
+        border-radius: 10px;
+    }
+
+    .calendar-wrap {
+        background-color: rgba(255, 255, 255, 0.75);
+        padding: 12px;
+        border-radius: 14px;
         margin-bottom: 20px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
     }
     .btn {
         display: inline-block;
@@ -57,7 +70,9 @@
 <main>
     <h1>Calendario Iglesia - Agosto 2025</h1>
 
-    <iframe src="https://calendar.google.com/calendar/embed?src=72086005a3ac9a324642e6977fb8f296d531c3520b03c6cf342495ed215e0186%40group.calendar.google.com&ctz=America%2FPuerto_Rico"></iframe>
+    <div class="calendar-wrap">
+      <iframe src="https://calendar.google.com/calendar/embed?src=72086005a3ac9a324642e6977fb8f296d531c3520b03c6cf342495ed215e0186%40group.calendar.google.com&ctz=America%2FPuerto_Rico&bgcolor=%23f4f7fb"></iframe>
+    </div>
 
     <a id="btn-gcal" href="#" class="btn btn-android">Agregar en Android / Google Calendar</a>
     <a id="btn-ios" href="webcal://p158-caldav.icloud.com/published/2/MTYyMzg4NDUwMjAxNjIzOFc_RCw-iCOSeM_LMqkWZcQMuX9sTzZF-PyrU9d06Oy4V0VhxUSZVqCmqzUsygyCHgAllfl2DFW34WcFi8EvPD8" class="btn btn-ios">Agregar en iOS / Apple Calendar</a>
