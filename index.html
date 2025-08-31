@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Programaciones mensuales</title>
+<style>
+  :root{
+    --bg:url("https://raw.githubusercontent.com/dla-tech/Media-privada/refs/heads/main/2025-04-13-17-10-05-878.jpeg");
+    --card: rgba(255,255,255,.86);
+    --ink: #0b1421;
+    --accent: #2563eb;
+    --shadow: 0 8px 20px rgba(0,0,0,.15);
+    --radius: 14px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    background:#0b1421; min-height:100svh;
+  }
+  body::before{content:"";position:fixed;inset:0;background-image:var(--bg);background-size:cover;background-position:center;filter:brightness(.9) saturate(.9);z-index:-2}
+  body::after{content:"";position:fixed;inset:0;background:linear-gradient(180deg,rgba(8,11,20,.35),rgba(8,11,20,.6));z-index:-1}
+
+  header{
+    position:sticky; top:0; z-index:50; backdrop-filter:saturate(1.2) blur(8px);
+    background:rgba(255,255,255,.55); border-bottom:1px solid rgba(0,0,0,.08)
+  }
+  .nav{
+    max-width:1100px; margin:0 auto; padding:10px 16px;
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  }
+  .spacer{flex:1}
+  .nav a{
+    text-decoration:none; font-weight:600; color:#0b1421;
+    padding:10px 12px; border-radius:10px;
+  }
+  .nav a.active{ background: #e9efff; color: var(--accent) }
+  .wrap{max-width:1100px; margin:0 auto; padding:22px 16px}
+
+  .card{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px}
+  h1,h2{color:#fff; text-align:center; margin:10px 0 14px}
+  section{scroll-margin-top:80px; margin-bottom:22px}
+  iframe{border:0; width:100%; border-radius:10px}
+  .grid{display:grid; gap:12px}
+  @media(min-width:720px){
+    .grid.cols-2{grid-template-columns:1fr 1fr}
+    .grid.cols-3{grid-template-columns:repeat(3,1fr)}
+  }
+  .grid.cols-1{grid-template-columns:1fr}
+  .subhead{margin:0 0 6px; font-weight:700; color:#0b1421}
+
+  .btn{display:block; text-align:center; text-decoration:none; padding:14px 16px;
+       border-radius:12px; font-weight:700; color:#fff}
+  .btn-g{background:#4285F4}
+  .btn-i{background:#34C759}
+  .btn-d{background:#0f172a}
+
+  .note{font-size:.92em; opacity:.8}
+  .list{margin:0; padding-left:18px}
+  .footer{color:#e5e7eb; text-align:center; font-size:.9em; padding:26px 0}
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="nav">
+    <div class="spacer"></div>
+    <a href="#calendarios" class="navlink">Calendarios</a>
+    <a href="#redes" class="navlink">Redes sociales</a>
+    <a href="#ubicacion-templo" class="navlink">Ubicación del templo</a>
+    <a href="#ubicacion-cultos" class="navlink">Ubicación de los cultos</a>
+    <a href="#proposito" class="navlink">Propósito</a>
+  </nav>
+</header>
+
+<main class="wrap">
+
+  <!-- CALENDARIOS -->
+  <section id="calendarios">
+    <h1>Programaciones mensuales</h1>
+    <div class="card" style="margin-bottom:12px">
+      <iframe
+        src="https://calendar.google.com/calendar/embed?src=72086005a3ac9a324642e6977fb8f296d531c3520b03c6cf342495ed215e0186%40group.calendar.google.com&ctz=America%2FPuerto_Rico&bgcolor=%23f4f7fb"
+        title="Calendario Google" loading="lazy" referrerpolicy="no-referrer-when-downgrade" height="600">
+      </iframe>
+    </div>
+
+    <div class="grid cols-2">
+      <a id="btn-gcal" class="btn btn-g" href="#" target="_blank" rel="noopener">🟢 Añadir en Google Calendar (Android/PC)</a>
+      <a id="btn-ios" class="btn btn-i" href="#" target="_self">📱 Añadir en Apple Calendar (iPhone/Mac)</a>
+    </div>
+
+    <p class="card note" style="margin-top:12px">
+      📌 Todo cambio en la programación de la iglesia se reflejará automáticamente en tu calendario.
+    </p>
+  </section>
+
+  <!-- REDES SOCIALES -->
+  <section id="redes">
+    <h2>Redes sociales</h2>
+    <div class="card">
+      <div class="grid cols-1">
+        <a class="btn btn-g" href="https://youtube.com/@pipjm9752?si=r3nrs4hxzxk-OVmI" target="_blank" rel="noopener">▶️ YouTube</a>
+        <a class="btn btn-d" href="mailto:pipjm1@gmail.com">✉️ pipjm1@gmail.com</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- UBICACIÓN TEMPLO -->
+  <section id="ubicacion-templo">
+    <h2>Ubicación del templo</h2>
+    <div class="card">
+      <p><strong>Dirección:</strong> <a href="https://maps.app.goo.gl/4R9ZXAmw1ZcnBTL49?g_st=ipc" target="_blank" rel="noopener">Ver en Google Maps</a></p>
+      <a href="https://maps.app.goo.gl/4R9ZXAmw1ZcnBTL49?g_st=ipc" target="_blank" rel="noopener">
+        <img src="https://raw.githubusercontent.com/dla-tech/Media-privada/refs/heads/main/2025-04-13-17-10-05-878.jpeg" alt="Ubicación del templo" style="width:100%; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,.25)">
+      </a>
+    </div>
+  </section>
+
+  <!-- UBICACIÓN CULTOS -->
+  <section id="ubicacion-cultos">
+    <h2>Ubicación de cultos evangelísticos</h2>
+    <div class="card">
+      <p>Algunos servicios se realizan en ubicaciones distintas:</p>
+      <div class="grid cols-2">
+        <div>
+          <p class="subhead"><span id="lbl-martes">Martes</span></p>
+          <p><strong id="title-martes">Culto evangelístico</strong><br><span id="addr-martes">(TODO: dirección)</span></p>
+          <iframe src="https://www.google.com/maps?q=Maunabo%20Puerto%20Rico&output=embed"
+                  height="260" loading="lazy" title="Culto martes"></iframe>
+        </div>
+        <div>
+          <p class="subhead"><span id="lbl-miercoles">Miércoles</span></p>
+          <p><strong id="title-miercoles">Culto evangelístico</strong><br><span id="addr-miercoles">(TODO: dirección)</span></p>
+          <iframe src="https://www.google.com/maps?q=Maunabo%20Puerto%20Rico&output=embed"
+                  height="260" loading="lazy" title="Culto miércoles"></iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROPOSITO -->
+  <section id="proposito">
+    <h2>Propósito</h2>
+    <div class="card">
+      <p><strong>Nuestro propósito</strong> es: “Llevar el evangelio a toda criatura, dar un mensaje de esperanza, mostrar el amor de Dios al mundo y ayudar al necesitado.”</p>
+      <h3 style="margin-top:16px; font-size:1.1em; color:#0b1421;">Horarios de cultos y actividades</h3>
+      <ul class="list">
+        <li><strong>Lunes:</strong> Culto de oración en el templo — 7:00 p.m.</li>
+        <li><strong>Martes y Miércoles:</strong> Cultos evangelísticos en Maunabo y lugares limítrofes — 7:00 p.m.</li>
+        <li><strong>Jueves:</strong> Culto de la Sociedad de Niños, oración o estudio bíblico — 7:00 p.m.</li>
+        <li><strong>Viernes:</strong> Culto de las Sociedades de Damas, Caballeros y Jóvenes — 7:00 p.m.</li>
+        <li><strong>Sábado:</strong> Altar familiar. (Una vez al mes, ayuno congregacional) — 6:00 a.m.</li>
+        <li><strong>Domingo:</strong>
+          <ul>
+            <li>Ayuno — desde las 6:00 a.m.</li>
+            <li>Apertura de Escuela Bíblica — 8:45 a.m.</li>
+            <li>Cierre de Escuela Bíblica — 10:45 a.m.</li>
+            <li>Comienzo del culto de adoración — 11:15 a.m.</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="footer">© 2025 — Iglesia. Todos los derechos reservados.</div>
+</main>
+
+<!-- =========================
+     ICS embebido (SEPTIEMBRE 2025)
+     ========================= -->
+<script id="ics-data" type="text/plain" style="display:none;">
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Iglesia//Calendario Sept 2025//ES
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+
+BEGIN:VEVENT
+UID:20250902T190000-SEC3@iglesia
+DTSTAMP:20250801T120000Z
+DTSTART:20250902T190000
+DTEND:20250902T203000
+SUMMARY:Culto Evangelístico — Sección III, Sector Florida-Calzada
+LOCATION:Sector Florida-Calzada, Maunabo, PR
+END:VEVENT
+
+BEGIN:VEVENT
+UID:20250903T190000-SEC2@iglesia
+DTSTAMP:20250801T120000Z
+DTSTART:20250903T190000
+DTEND:20250903T203000
+SUMMARY:Culto Evangelístico — Sección II, Sector Las Lajas-Matuyas
+LOCATION:Sector Las Lajas-Matuyas, Maunabo, PR
+END:VEVENT
+
+BEGIN:VEVENT
+UID:20250909T190000-CALIMANO@iglesia
+DTSTAMP:20250801T120000Z
+DTSTART:20250909T190000
+DTEND:20250909T203000
+SUMMARY:Culto Evangelístico — Parque Pasivo de Calimano
+LOCATION:Parque Pasivo de Calimano, Maunabo, PR
+END:VEVENT
+
+BEGIN:VEVENT
+UID:20250910T190000-CALIMANO@iglesia
+DTSTAMP:20250801T120000Z
+DTSTART:20250910T190000
+DTEND:20250910T203000
+SUMMARY:Culto Evangelístico — Parque Pasivo de Calimano
+LOCATION:Parque Pasivo de Calimano, Maunabo, PR
+END:VEVENT
+
+BEGIN:VEVENT
+UID:20250916T190000-EGIDA@iglesia
+DTSTAMP:20250801T120000Z
+DTSTART:20250916T190000
+DTEND:20250916T203000
+SUMMARY:Culto Evangelístico — Sección II (al lado de la Égida, Emajagua)
+LOCATION:Égida de Emajagua, Maunabo, PR
+END:VEVENT
+
+BEGIN:VEVENT
+UID:20250917T190000-MALOJA@iglesia
+DTSTAMP:20250801T120000Z
+DTSTART:20250917T190000
+DTEND:20250917T203000
+SUMMARY:Culto Evangelístico — Maloja (Emajagua)
+LOCATION:Maloja, Emajagua, Maunabo, PR
+END:VEVENT
+
+BEGIN:VEVENT
+UID:20250923T190000-SEC3@iglesia
+DTSTAMP:20250801T120000Z
+DTSTART:20250923T190000
+DTEND:20250923T203000
+SUMMARY:Culto Evangelístico — Sección III
+LOCATION:Maunabo, PR
+END:VEVENT
+
+BEGIN:VEVENT
+UID:20250924T190000-SEC2@iglesia
+DTSTAMP:20250801T120000Z
+DTSTART:20250924T190000
+DTEND:20250924T203000
+SUMMARY:Culto Evangelístico — Sección II
+LOCATION:Maunabo, PR
+END:VEVENT
+
+BEGIN:VEVENT
+UID:20250930T190000-CRISTAL@iglesia
+DTSTAMP:20250801T120000Z
+DTSTART:20250930T190000
+DTEND:20250930T203000
+SUMMARY:Culto Evangelístico — Sección I (Cristal)
+LOCATION:Cristal, Maunabo, PR
+END:VEVENT
+
+END:VCALENDAR
+</script>
+
+<!-- ===== Etiquetas dinámicas Mar/Mié — Semana con DOMINGO como inicio ===== -->
+<script>
+(function(){
+  const tz = "America/Puerto_Rico";
+  const now = new Date();
+  const pr = new Date(now.toLocaleString('en-US', { timeZone: tz }));
+
+  // Domingo = inicio
+  const dowSun0 = pr.getDay(); // 0=Dom,1=Lun,...6=Sáb
+  const sunday = new Date(pr); sunday.setHours(0,0,0,0); sunday.setDate(pr.getDate() - dowSun0);
+
+  const tuesday = new Date(sunday);   tuesday.setDate(sunday.getDate() + 2);
+  const wednesday = new Date(sunday); wednesday.setDate(sunday.getDate() + 3);
+
+  const elMartes = document.getElementById('lbl-martes');
+  const elMiercoles = document.getElementById('lbl-miercoles');
+  if (elMartes)    elMartes.textContent    = `Martes ${tuesday.getDate()}`;
+  if (elMiercoles) elMiercoles.textContent = `Miércoles ${wednesday.getDate()}`;
+})();
+</script>
+
+<!-- === Leer ICS embebido y actualizar títulos + direcciones + mapas (semana desde DOMINGO) === -->
+<script>
+(function(){
+  const TZ = 'America/Puerto_Rico';
+
+  // Utils
+  const toPR = d => new Date(d.toLocaleString('en-US',{timeZone:TZ}));
+  const startOfDay = d => (d=new Date(d), d.setHours(0,0,0,0), d);
+  const addDays = (d,n)=> (d=new Date(d), d.setDate(d.getDate()+n), d);
+  const sameDayPR = (a,b)=>{a=toPR(a);b=toPR(b);
+    return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()};
+
+  // Semana con DOMINGO como inicio
+  const now = new Date();
+  const prNow = toPR(now);
+  const dowSun0 = prNow.getDay(); // 0..6
+  const sunday = startOfDay(addDays(prNow, -dowSun0));
+  const tuesday = addDays(sunday, 2);
+  const wednesday = addDays(sunday, 3);
+
+  // Parser ICS
+  const unfold = txt => txt.replace(/(?:\r\n|\n)[ \t]/g,'');
+  const getLineVal = (block, prop) => {
+    const m = block.match(new RegExp('^'+prop+'(?:;[^:\\n]*)?:(.*)$','mi'));
+    return m ? m[1].trim() : null;
+  };
+  function parseDTSTART(block){
+    const m = block.match(/^DTSTART([^:\n]*)?:([^\n]+)$/mi);
+    if (!m) return null;
+    const params = (m[1]||'').toUpperCase();
+    const val = m[2].trim();
+
+    const dOnly = val.match(/^(\d{4})(\d{2})(\d{2})$/);
+    if (/VALUE=DATE/.test(params) && dOnly){
+      const [_,Y,M,D] = dOnly; return new Date(Date.UTC(+Y,+M-1,+D,4,0,0)); // all-day -> ~00:00 PR
+    }
+    const dt = val.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z)?$/);
+    if (dt){
+      const [_,Y,M,D,hh,mm,ss,Z] = dt;
+      if (/TZID=AMERICA\/PUERTO_RICO/.test(params))
+        return new Date(Date.UTC(+Y,+M-1,+D,+hh+4,+mm,+ss));
+      if (Z) return new Date(Date.UTC(+Y,+M-1,+D,+hh,+mm,+ss));
+      return new Date(Date.UTC(+Y,+M-1,+D,+hh+4,+mm,+ss));
+    }
+    if (dOnly){
+      const [_,Y,M,D] = dOnly; return new Date(Date.UTC(+Y,+M-1,+D,4,0,0));
+    }
+    return null;
+  }
+
+  // Leer ICS embebido
+  const icsEl = document.getElementById('ics-data');
+  const raw = icsEl ? icsEl.textContent.trim() : '';
+  if (!raw) return;
+
+  const t = unfold(raw);
+  const blocks = t.split(/BEGIN:VEVENT/).slice(1).map(b=>'BEGIN:VEVENT'+b.split('END:VEVENT')[0]);
+
+  let tueEv=null, wedEv=null;
+  for (const ev of blocks){
+    const dt = parseDTSTART(ev); if (!dt) continue;
+    if (!tueEv && sameDayPR(dt,tuesday))   tueEv = {summary:getLineVal(ev,'SUMMARY'), location:getLineVal(ev,'LOCATION')};
+    if (!wedEv && sameDayPR(dt,wednesday)) wedEv = {summary:getLineVal(ev,'SUMMARY'), location:getLineVal(ev,'LOCATION')};
+    if (tueEv && wedEv) break;
+  }
+
+  // Títulos y direcciones
+  const tTitle = document.getElementById('title-martes');
+  const wTitle = document.getElementById('title-miercoles');
+  const tAddr  = document.getElementById('addr-martes');
+  const wAddr  = document.getElementById('addr-miercoles');
+
+  if (tTitle && tueEv?.summary) tTitle.textContent = tueEv.summary;
+  if (wTitle && wedEv?.summary) wTitle.textContent = wedEv.summary;
+  if (tAddr  && tueEv?.location) tAddr.textContent = tueEv.location;
+  if (wAddr  && wedEv?.location) wAddr.textContent = wedEv.location;
+
+  // Mapas (usar LOCATION si existe; si no, fallback a Maunabo)
+  const tueIframe = document.querySelector('#ubicacion-cultos .grid.cols-2 > div:nth-child(1) iframe');
+  const wedIframe = document.querySelector('#ubicacion-cultos .grid.cols-2 > div:nth-child(2) iframe');
+  const setMap = (iframeEl, locationText) => {
+    if (!iframeEl) return;
+    const query = (locationText && locationText.trim()) ? locationText.trim() : 'Maunabo Puerto Rico';
+    iframeEl.src = 'https://www.google.com/maps?q=' + encodeURIComponent(query) + '&output=embed';
+    iframeEl.title = 'Mapa: ' + query;
+  };
+  setMap(tueIframe, tueEv?.location);
+  setMap(wedIframe, wedEv?.location);
+})();
+</script>
+
+<!-- ===== Botones de suscripción (iCloud/Google) ===== -->
+<script>
+  const ICLOUD_WEBCAL = "webcal://p158-caldav.icloud.com/published/2/MTYyMzg4NDUwMjAxNjIzOFc_RCw-iCOSeM_LMqkWZcQMuX9sTzZF-PyrU9d06Oy4V0VhxUSZVqCmqzUsygyCHgAllfl2DFW34WcFi8EvPD8";
+  const ICLOUD_HTTPS  = "https://p158-caldav.icloud.com/published/2/MTYyMzg4NDUwMjAxNjIzOFc_RCw-iCOSeM_LMqkWZcQMuX9sTzZF-PyrU9d06Oy4V0VhxUSZVqCmqzUsygyCHgAllfl2DFW34WcFi8EvPD8.ics";
+  const GCAL_CALENDAR_ID = "72086005a3ac9a324642e6977fb8f296d531c3520b03c6cf342495ed215e0186@group.calendar.google.com";
+
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const gcalAddUrl = "https://calendar.google.com/calendar/r?cid=" + encodeURIComponent(ICLOUD_HTTPS);
+  const gcalByIdUrl = "https://calendar.google.com/calendar/u/0?cid=" + encodeURIComponent(GCAL_CALENDAR_ID);
+
+  document.getElementById("btn-ios").addEventListener("click", (e)=>{
+    e.preventDefault();
+    const url = ICLOUD_WEBCAL;
+    if (window.self !== window.top && isIOS) window.top.location.href = url; else window.location.href = url;
+    setTimeout(()=>alert("Si no se abrió el Calendario, copia este enlace y ábrelo en Safari:\n" + url), 1600);
+  });
+
+  document.getElementById("btn-gcal").addEventListener("click", (e)=>{
+    e.preventDefault();
+    const target = gcalAddUrl; // o gcalByIdUrl si prefieres el ID directamente
+    if (window.self !== window.top) window.top.location.href = target; else window.location.href = target;
+  });
+
+  // Nav activo al hacer scroll (cosmético)
+  const links = [...document.querySelectorAll('.navlink')];
+  const sections = links.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+  const obs = new IntersectionObserver((entries)=>{
+    entries.forEach(en=>{
+      const i = sections.indexOf(en.target);
+      if (i>=0){
+        const a = links[i];
+        if (en.isIntersecting) { links.forEach(x=>x.classList.remove('active')); a.classList.add('active'); }
+      }
+    });
+  }, { rootMargin: "-50% 0px -40% 0px", threshold: 0.01 });
+  sections.forEach(s=>obs.observe(s));
+</script>
+
+</body>
+</html>
