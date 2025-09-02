@@ -24,7 +24,7 @@
     z-index: 9999;
     transition: opacity 1s ease;
     height: 100dvh;
-    min-height: 100vh;       /* fallback clásico */
+    min-height: 100vh;
     width: 100vw;
     background-size: cover;
     background-position: center;
@@ -32,35 +32,14 @@
     pointer-events: all;
     padding-bottom: env(safe-area-inset-bottom);
   }
-  @supports (height: 100svh) {
-    #loader { height: 100svh; }
-  }
-  @supports (height: 100lvh) {
-    #loader { height: 100lvh; }
-  }
-  #loader .explosion {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
-    width: 100%;
-    height: 100%;
-  }
-  #loader .logo {
-    width: 320px;
-    animation: pulse 1.5s infinite;
-    position: relative;
-    z-index: 10; /* encima */
-  }
-  @keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-  }
-  #loader.hidden {
-    opacity: 0;
-    pointer-events: none;
-  }
+  @supports (height: 100svh) { #loader { height: 100svh; } }
+  @supports (height: 100lvh) { #loader { height: 100lvh; } }
+
+  #loader .explosion { position: absolute; inset: 0; z-index: 1; pointer-events: none; width: 100%; height: 100%; }
+  #loader .logo { width: 320px; animation: pulse 1.5s infinite; position: relative; z-index: 10; }
+  @keyframes pulse { 0%{transform:scale(1)} 50%{transform:scale(1.1)} 100%{transform:scale(1)} }
+  #loader.hidden { opacity: 0; pointer-events: none; }
+
   :root{
     --bg:url("https://raw.githubusercontent.com/dla-tech/Media-privada/refs/heads/main/2025-04-13-17-10-05-878.jpeg");
     --card: rgba(255,255,255,.86);
@@ -71,11 +50,7 @@
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
-  body{
-    margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-    color:var(--ink);
-    background:#0b1421; min-height:100svh;
-  }
+  body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; color:var(--ink); background:#0b1421; min-height:100svh; }
   body::before{content:"";position:fixed;inset:0;background-image:var(--bg);background-size:cover;background-position:center;filter:brightness(.9) saturate(.9);z-index:-2}
   body::after{content:"";position:fixed;inset:0;background:linear-gradient(180deg,rgba(8,11,20,.35),rgba(8,11,20,.6));z-index:-1}
 
@@ -94,28 +69,17 @@
   .nav{
     max-width:1100px; margin:0 auto; padding:8px 10px;
     display:grid; gap:8px;
-    grid-template-columns: repeat(2, 1fr); /* 2 columnas en móvil */
+    grid-template-columns: repeat(2, 1fr);
   }
-  .nav .spacer{ display:none; } /* no hace falta en móvil */
+  .nav .spacer{ display:none; }
   .nav a{
-    display:block;
-    text-align:center;
-    text-decoration:none;
-    font-weight:600;
-    color:#0b1421;
-    padding:10px 10px;
-    font-size:14px;
-    border-radius:10px;
-    border:1px solid rgba(0,0,0,.08);
-    background:rgba(255,255,255,.5);
+    display:block; text-align:center; text-decoration:none; font-weight:600; color:#0b1421;
+    padding:10px 10px; font-size:14px; border-radius:10px;
+    border:1px solid rgba(0,0,0,.08); background:rgba(255,255,255,.5);
   }
-  .nav a.active{
-    background:#e9efff;
-    color:#2563eb;
-    border-color:rgba(37,99,235,.25);
-  }
+  .nav a.active{ background:#e9efff; color:#2563eb; border-color:rgba(37,99,235,.25); }
 
-  /* iOS compacto: mantén 2 columnas pero reduce tamaño visual */
+  /* iOS compacto */
   @supports (-webkit-touch-callout: none){
     @media (max-width: 430px){
       .nav{ padding:8px 10px; gap:8px; }
@@ -127,40 +91,25 @@
     }
   }
 
-  /* TABLET+: vuelve a barra horizontal */
+  /* TABLET+ */
   @media (min-width: 768px){
-    .nav{
-      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
-      padding:10px 16px;
-    }
+    .nav{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding:10px 16px; }
     .nav .spacer{ flex:1; display:block; }
-    .nav a{
-      padding:10px 12px;
-      min-width:auto;
-      background:transparent;
-      border:0;
-    }
-    .nav a.active{
-      background:#e9efff;
-      border:0;
-    }
+    .nav a{ padding:10px 12px; min-width:auto; background:transparent; border:0; }
+    .nav a.active{ background:#e9efff; border:0; }
   }
-  .wrap{max-width:1100px; margin:0 auto; padding:22px 16px}
 
+  .wrap{max-width:1100px; margin:0 auto; padding:22px 16px}
   .card{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px}
   h1,h2{color:#fff; text-align:center; margin:10px 0 14px}
   section{scroll-margin-top:80px; margin-bottom:22px}
   iframe{border:0; width:100%; border-radius:10px}
   .grid{display:grid; gap:12px}
-  @media(min-width:720px){
-    .grid.cols-2{grid-template-columns:1fr 1fr}
-    .grid.cols-3{grid-template-columns:repeat(3,1fr)}
-  }
+  @media(min-width:720px){ .grid.cols-2{grid-template-columns:1fr 1fr} .grid.cols-3{grid-template-columns:repeat(3,1fr)} }
   .grid.cols-1{grid-template-columns:1fr}
   .subhead{margin:0 0 6px; font-weight:700; color:#0b1421}
 
-  .btn{display:block; text-align:center; text-decoration:none; padding:14px 16px;
-       border-radius:12px; font-weight:700; color:#fff}
+  .btn{display:block; text-align:center; text-decoration:none; padding:14px 16px; border-radius:12px; font-weight:700; color:#fff}
   .btn-g{background:#4285F4}
   .btn-i{background:#34C759}
   .btn-d{background:#0f172a}
@@ -176,35 +125,11 @@
   .note{font-size:.92em; opacity:.8}
   .list{margin:0; padding-left:18px}
   .footer{color:#e5e7eb; text-align:center; font-size:.9em; padding:26px 0}
-
-  /* Modal contacto */
-  .contact-modal {
-    display:none; position:fixed; inset:0;
-    background:rgba(0,0,0,0.6);
-    align-items:center; justify-content:center;
-    z-index:10000;
-  }
-  .contact-modal .modal-content {
-    background:#fff; padding:20px; border-radius:12px;
-    text-align:center; max-width:300px; width:90%;
-    box-shadow:0 6px 16px rgba(0,0,0,.25);
-  }
-  .contact-modal .btn {
-    display:block; margin:10px 0; text-decoration:none;
-    padding:12px; border-radius:8px; color:#fff; font-weight:600;
-  }
-  .contact-modal .btn-d {
-    display:block;
-    margin:10px 0;
-    padding:12px;
-    border-radius:8px;
-    color:#fff;
-    font-weight:600;
-    background:#444;
-    border:none;
-    width:100%;
-    text-align:center;
-  }
+  /* Modal contacto (sin cambios) */
+  .contact-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); align-items:center; justify-content:center; z-index:10000; }
+  .contact-modal .modal-content { background:#fff; padding:20px; border-radius:12px; text-align:center; max-width:300px; width:90%; box-shadow:0 6px 16px rgba(0,0,0,.25); }
+  .contact-modal .btn { display:block; margin:10px 0; text-decoration:none; padding:12px; border-radius:8px; color:#fff; font-weight:600; }
+  .contact-modal .btn-d { display:block; margin:10px 0; padding:12px; border-radius:8px; color:#fff; font-weight:600; background:#444; border:none; width:100%; text-align:center; }
 </style>
 </head>
 <body>
@@ -287,14 +212,12 @@
         <div>
           <p class="subhead"><span id="lbl-martes">Martes</span></p>
           <p><strong id="title-martes">Culto evangelístico</strong><br><span id="addr-martes">(TODO: dirección)</span></p>
-          <iframe src="https://www.google.com/maps?q=Maunabo%20Puerto%20Rico&output=embed"
-                  height="260" loading="lazy" title="Culto martes"></iframe>
+          <iframe src="https://www.google.com/maps?q=Maunabo%20Puerto%20Rico&output=embed" height="260" loading="lazy" title="Culto martes"></iframe>
         </div>
         <div>
           <p class="subhead"><span id="lbl-miercoles">Miércoles</span></p>
           <p><strong id="title-miercoles">Culto evangelístico</strong><br><span id="addr-miercoles">(TODO: dirección)</span></p>
-          <iframe src="https://www.google.com/maps?q=Maunabo%20Puerto%20Rico&output=embed"
-                  height="260" loading="lazy" title="Culto miércoles"></iframe>
+          <iframe src="https://www.google.com/maps?q=Maunabo%20Puerto%20Rico&output=embed" height="260" loading="lazy" title="Culto miércoles"></iframe>
         </div>
       </div>
     </div>
@@ -352,7 +275,7 @@ UID:20250903T190000-SEC2@iglesia
 DTSTAMP:20250801T120000Z
 DTSTART:20250903T190000
 DTEND:20250903T203000
-SUMMARY:Culto Evangelístico — Sección III, Sector Las Lajas-Matuyas
+SUMMARY:Culto Evangelístico — Sección II, Sector Las Lajas-Matuyas
 LOCATION:Sector Las Lajas-Matuyas, Maunabo, PR
 END:VEVENT
 
@@ -422,20 +345,16 @@ END:VEVENT
 END:VCALENDAR
 </script>
 
-<!-- ===== Etiquetas dinámicas Mar/Mié — Semana con DOMINGO como inicio ===== -->
+<!-- ===== Etiquetas dinámicas Mar/Mié (DOMINGO como inicio) ===== -->
 <script>
 (function(){
   const tz = "America/Puerto_Rico";
   const now = new Date();
   const pr = new Date(now.toLocaleString('en-US', { timeZone: tz }));
-
-  // Domingo = inicio
-  const dowSun0 = pr.getDay(); // 0=Dom,1=Lun,...6=Sáb
+  const dowSun0 = pr.getDay();
   const sunday = new Date(pr); sunday.setHours(0,0,0,0); sunday.setDate(pr.getDate() - dowSun0);
-
   const tuesday = new Date(sunday);   tuesday.setDate(sunday.getDate() + 2);
   const wednesday = new Date(sunday); wednesday.setDate(sunday.getDate() + 3);
-
   const elMartes = document.getElementById('lbl-martes');
   const elMiercoles = document.getElementById('lbl-miercoles');
   if (elMartes)    elMartes.textContent    = `Martes ${tuesday.getDate()}`;
@@ -443,34 +362,21 @@ END:VCALENDAR
 })();
 </script>
 
-<!-- === Leer ICS embebido y actualizar títulos + direcciones + mapas (semana desde DOMINGO) === -->
+<!-- === Leer ICS y actualizar títulos + direcciones + mapas === -->
 <script>
 (function(){
   const TZ = 'America/Puerto_Rico';
-
-  // Utils
   const toPR = d => new Date(d.toLocaleString('en-US',{timeZone:TZ}));
   const startOfDay = d => (d=new Date(d), d.setHours(0,0,0,0), d);
   const addDays = (d,n)=> (d=new Date(d), d.setDate(d.getDate()+n), d);
   const sameDayPR = (a,b)=>{a=toPR(a);b=toPR(b);
     return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()};
-  // ISO date formatter
-  const toISO = d => {
-    const y = d.getFullYear();
-    const m = String(d.getMonth()+1).padStart(2,'0');
-    const da = String(d.getDate()).padStart(2,'0');
-    return `${y}-${m}-${da}`;
-  };
+  const toISO = d => { const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), da=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${da}`; };
 
-  // Semana con DOMINGO como inicio
-  const now = new Date();
-  const prNow = toPR(now);
-  const dowSun0 = prNow.getDay(); // 0..6
+  const now = new Date(); const prNow = toPR(now); const dowSun0 = prNow.getDay();
   const sunday = startOfDay(addDays(prNow, -dowSun0));
-  const tuesday = addDays(sunday, 2);
-  const wednesday = addDays(sunday, 3);
+  const tuesday = addDays(sunday, 2); const wednesday = addDays(sunday, 3);
 
-  // Pins exactos por fecha (YYYY-MM-DD) -> maps.app.goo.gl
   const PIN_LINKS = {
     '2025-09-02': 'https://maps.app.goo.gl/PJ4bF5y8kzK7VtC96?g_st=ipc',
     '2025-09-03': 'https://maps.app.goo.gl/ywk9uNajhMkmKq2Y7?g_st=ipc',
@@ -479,53 +385,33 @@ END:VCALENDAR
     '2025-09-16': 'https://maps.app.goo.gl/4L1rut6fFb5x2pKg8?g_st=ipc',
     '2025-09-17': 'https://maps.app.goo.gl/ffA2tEJkTcRMBbib8?g_st=ipc',
     '2025-09-23': 'https://maps.app.goo.gl/FypEuJLpCWbcjvaGA?g_st=ipc',
-    // '2025-09-24': (sin pin)
     '2025-09-30': 'https://maps.app.goo.gl/23QLJ7UV3DJJK4uW9?g_st=ipc'
   };
-  const tueKey = toISO(tuesday);
-  const wedKey = toISO(wednesday);
-  const tuePin = PIN_LINKS[tueKey] || null;
-  const wedPin = PIN_LINKS[wedKey] || null;
+  const tueKey = toISO(tuesday), wedKey = toISO(wednesday);
+  const tuePin = PIN_LINKS[tueKey] || null, wedPin = PIN_LINKS[wedKey] || null;
 
-  // Parser ICS
-  const unfold = txt => txt.replace(/(?:\r\n|\n)[ \t]/g,'');
-  const getLineVal = (block, prop) => {
-    const m = block.match(new RegExp('^'+prop+'(?:;[^:\\n]*)?:(.*)$','mi'));
-    return m ? m[1].trim() : null;
-  };
-  function parseDTSTART(block){
-    const m = block.match(/^DTSTART([^:\n]*)?:([^\n]+)$/mi);
-    if (!m) return null;
-    const params = (m[1]||'').toUpperCase();
-    const val = m[2].trim();
-
-    const dOnly = val.match(/^(\d{4})(\d{2})(\d{2})$/);
-    if (/VALUE=DATE/.test(params) && dOnly){
-      const [_,Y,M,D] = dOnly; return new Date(Date.UTC(+Y,+M-1,+D,4,0,0)); // all-day -> ~00:00 PR
-    }
-    const dt = val.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z)?$/);
-    if (dt){
-      const [_,Y,M,D,hh,mm,ss,Z] = dt;
-      if (/TZID=AMERICA\/PUERTO_RICO/.test(params))
-        return new Date(Date.UTC(+Y,+M-1,+D,+hh+4,+mm,+ss));
-      if (Z) return new Date(Date.UTC(+Y,+M-1,+D,+hh,+mm,+ss));
-      return new Date(Date.UTC(+Y,+M-1,+D,+hh+4,+mm,+ss));
-    }
-    if (dOnly){
-      const [_,Y,M,D] = dOnly; return new Date(Date.UTC(+Y,+M-1,+D,4,0,0));
-    }
-    return null;
-  }
-
-  // Leer ICS embebido
-  const icsEl = document.getElementById('ics-data');
-  const raw = icsEl ? icsEl.textContent.trim() : '';
+  const icsEl = document.getElementById('ics-data'); const raw = icsEl ? icsEl.textContent.trim() : '';
   if (!raw) return;
-
-  const t = unfold(raw);
+  const t = raw.replace(/(?:\r\n|\n)[ \t]/g,'');
   const blocks = t.split(/BEGIN:VEVENT/).slice(1).map(b=>'BEGIN:VEVENT'+b.split('END:VEVENT')[0]);
 
   let tueEv=null, wedEv=null;
+  const getLineVal = (block, prop) => { const m = block.match(new RegExp('^'+prop+'(?:;[^:\\n]*)?:(.*)$','mi')); return m ? m[1].trim() : null; };
+  function parseDTSTART(block){
+    const m = block.match(/^DTSTART([^:\n]*)?:([^\n]+)$/mi); if (!m) return null;
+    const params = (m[1]||'').toUpperCase(); const val = m[2].trim();
+    const dOnly = val.match(/^(\d{4})(\d{2})(\d{2})$/);
+    if (/VALUE=DATE/.test(params) && dOnly){ const [_,Y,M,D]=dOnly; return new Date(Date.UTC(+Y,+M-1,+D,4,0,0)); }
+    const dt = val.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z)?$/);
+    if (dt){ const [_,Y,M,D,hh,mm,ss,Z]=dt;
+      if (/TZID=AMERICA\/PUERTO_RICO/.test(params)) return new Date(Date.UTC(+Y,+M-1,+D,+hh+4,+mm,+ss));
+      if (Z) return new Date(Date.UTC(+Y,+M-1,+D,+hh,+mm,+ss));
+      return new Date(Date.UTC(+Y,+M-1,+D,+hh+4,+mm,+ss));
+    }
+    if (dOnly){ const [_,Y,M,D]=dOnly; return new Date(Date.UTC(+Y,+M-1,+D,4,0,0)); }
+    return null;
+  }
+
   for (const ev of blocks){
     const dt = parseDTSTART(ev); if (!dt) continue;
     if (!tueEv && sameDayPR(dt,tuesday))   tueEv = {summary:getLineVal(ev,'SUMMARY'), location:getLineVal(ev,'LOCATION')};
@@ -533,54 +419,32 @@ END:VCALENDAR
     if (tueEv && wedEv) break;
   }
 
-  // Títulos y direcciones
   const tTitle = document.getElementById('title-martes');
   const wTitle = document.getElementById('title-miercoles');
   const tAddr  = document.getElementById('addr-martes');
   const wAddr  = document.getElementById('addr-miercoles');
-
   if (tTitle && tueEv?.summary) tTitle.textContent = tueEv.summary;
   if (wTitle && wedEv?.summary) wTitle.textContent = wedEv.summary;
   if (tAddr  && tueEv?.location) tAddr.textContent = tueEv.location;
   if (wAddr  && wedEv?.location) wAddr.textContent = wedEv.location;
 
-  // Mapas (normalizar LOCATION para evitar saltos a lugares erróneos)
   const tueIframe = document.querySelector('#ubicacion-cultos .grid.cols-2 > div:nth-child(1) iframe');
   const wedIframe = document.querySelector('#ubicacion-cultos .grid.cols-2 > div:nth-child(2) iframe');
 
-  // Normaliza una ubicación para que Google Maps no se confunda
   function normalizeLocation(raw){
     if (!raw) return 'Maunabo, Puerto Rico';
-
-    // Toma la parte más “lugar” si viene con guiones o slash
     let txt = String(raw).split(/[-–—/|]/).pop().trim();
-
-    // Limpia paréntesis y espacios duplicados
     txt = txt.replace(/\s*\(.*?\)\s*/g,' ').replace(/\s{2,}/g,' ').trim();
-
-    // Municipios cercanos conocidos
     const municipios = ['Maunabo','Emajagua','Yabucoa','Humacao','Las Piedras','Patillas','Guayama','San Lorenzo'];
     const hasMunicipio = municipios.some(m => new RegExp(`\\b${m}\\b`,`i`).test(txt));
-
-    if (hasMunicipio) {
-      // Asegura “Puerto Rico”
-      if (!/puerto\s*rico/i.test(txt)) txt += ', Puerto Rico';
-      return txt;
-    }
-
-    // Si no menciona municipio, ata por defecto a Maunabo, Puerto Rico
+    if (hasMunicipio) { if (!/puerto\\s*rico/i.test(txt)) txt += ', Puerto Rico'; return txt; }
     return `${txt}, Maunabo, Puerto Rico`;
   }
-
   function setMap(iframeEl, locationText, pinUrl) {
     if (!iframeEl) return;
     const query = normalizeLocation(locationText);
-
-    // Establece el mapa embebido usando la misma query normalizada
-    iframeEl.src   = 'https://www.google.com/maps?output=embed&q=' + encodeURIComponent(query);
+    iframeEl.src = 'https://www.google.com/maps?output=embed&q=' + encodeURIComponent(query);
     iframeEl.title = 'Mapa: ' + query;
-
-    // Overlay clickeable para abrir Google Maps en nueva pestaña con la MISMA query
     let overlay = iframeEl.parentElement.querySelector('.map-overlay');
     if (!overlay) {
       overlay = document.createElement('a');
@@ -588,27 +452,22 @@ END:VCALENDAR
       overlay.target = '_blank';
       overlay.rel = 'noopener';
       overlay.style.cssText = 'position:absolute;inset:0;z-index:5;';
-      const holder = iframeEl.parentElement;
-      const cs = getComputedStyle(holder);
+      const holder = iframeEl.parentElement; const cs = getComputedStyle(holder);
       if (cs.position === 'static') holder.style.position = 'relative';
       holder.appendChild(overlay);
     }
     overlay.href = pinUrl || ('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query));
   }
-
   setMap(tueIframe, tueEv?.location, tuePin);
   setMap(wedIframe, wedEv?.location, wedPin);
 })();
 </script>
 
 <script>
-// ===== Detectar si el canal está EN VIVO y mostrar reproductor debajo del botón de YouTube =====
+// ===== Detectar si el canal está EN VIVO y mostrar reproductor =====
 (function(){
-  // Configura tu canal
   const CHANNEL_HANDLE = '@pipjm9752';
-  // Si conoces el CHANNEL_ID (UCxxxxxxxx...), colócalo aquí para poder embeber el player directamente
-  const CHANNEL_ID = ''; // <-- si lo añades, verás el reproductor dentro de la página
-
+  const CHANNEL_ID = ''; // opcional
   const liveBox = document.getElementById('live-wrap');
   const livePlayer = document.getElementById('live-player');
   const liveCta = document.getElementById('live-cta');
@@ -616,44 +475,42 @@ END:VCALENDAR
 
   const liveUrl = `https://www.youtube.com/${CHANNEL_HANDLE}/live`;
   if (liveCta) liveCta.href = liveUrl;
-
-  // Truco sin API: oEmbed devuelve 200 si hay directo, 404 si no.
   const oembed = `https://www.youtube.com/oembed?url=${encodeURIComponent(liveUrl)}&format=json`;
 
   fetch(oembed, { mode: 'cors' })
-    .then(r => {
-      if (!r.ok) throw new Error('offline');
-      return r.json();
-    })
+    .then(r => { if (!r.ok) throw new Error('offline'); return r.json(); })
     .then(() => {
-      // EN VIVO
       liveBox.style.display = 'block';
-      // Si tenemos CHANNEL_ID, insertamos el reproductor incrustado. Si no, dejamos el CTA.
       if (CHANNEL_ID) {
         const src = `https://www.youtube.com/embed/live_stream?channel=${encodeURIComponent(CHANNEL_ID)}&autoplay=1&mute=1&rel=0&modestbranding=1`;
         livePlayer.innerHTML = `<iframe src="${src}" title="YouTube live" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
       } else {
-        // Sin CHANNEL_ID: mostramos un mini aviso y dejamos el botón "Ver en YouTube"
         livePlayer.innerHTML = '';
       }
     })
-    .catch(() => {
-      // OFFLINE: no mostramos nada
-      liveBox.style.display = 'none';
-    });
+    .catch(() => { liveBox.style.display = 'none'; });
 })();
 </script>
+
 <!-- ===== Botones de suscripción (iCloud/Google) ===== -->
 <script>
   const ICLOUD_WEBCAL = "webcal://p158-caldav.icloud.com/published/2/MTYyMzg4NDUwMjAxNjIzOFc_RCw-iCOSeM_LMqkWZcQMuX9sTzZF-PyrU9d06Oy4V0VhxUSZVqCmqzUsygyCHgAllfl2DFW34WcFi8EvPD8";
   const ICLOUD_HTTPS  = "https://p158-caldav.icloud.com/published/2/MTYyMzg4NDUwMjAxNjIzOFc_RCw-iCOSeM_LMqkWZcQMuX9sTzZF-PyrU9d06Oy4V0VhxUSZVqCmqzUsygyCHgAllfl2DFW34WcFi8EvPD8.ics";
   const GCAL_CALENDAR_ID = "72086005a3ac9a324642e6977fb8f296d531c3520b03c6cf342495ed215e0186@group.calendar.google.com";
 
-  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isIOS     = /iPhone|iPad|iPod/i.test(navigator.userAgent);
   const isAndroid = /Android/i.test(navigator.userAgent);
-  const gcalAddUrl = "https://calendar.google.com/calendar/r?cid=" + encodeURIComponent(ICLOUD_HTTPS);
+
+  // Flujos para Google Calendar (botón azul)
+  const playStoreUrl = "https://play.google.com/store/apps/details?id=com.google.android.calendar";
+  const appStoreUrl  = "https://apps.apple.com/app/google-calendar/id909319292";
+
+  // Flujo web para añadir el .ics publicado a Google Calendar en navegador
+  const gcalAddUrl  = "https://calendar.google.com/calendar/r?cid=" + encodeURIComponent(ICLOUD_HTTPS);
+  // Alternativa por ID (si prefieres usar el ID nativo de Google)
   const gcalByIdUrl = "https://calendar.google.com/calendar/u/0?cid=" + encodeURIComponent(GCAL_CALENDAR_ID);
 
+  // iCloud (botón verde) — abre Apple Calendar por webcal
   document.getElementById("btn-ios").addEventListener("click", (e)=>{
     e.preventDefault();
     const url = ICLOUD_WEBCAL;
@@ -661,10 +518,45 @@ END:VCALENDAR
     setTimeout(()=>alert("Si no se abrió el Calendario, copia este enlace y ábrelo en Safari:\n" + url), 1600);
   });
 
+  // Google Calendar (botón azul) — intenta abrir la APP según plataforma y hace fallback
   document.getElementById("btn-gcal").addEventListener("click", (e)=>{
     e.preventDefault();
-    const target = gcalAddUrl; // o gcalByIdUrl si prefieres el ID directamente
-    if (window.self !== window.top) window.top.location.href = target; else window.location.href = target;
+
+    if (isAndroid){
+      // Intento 1: Android intent para abrir la app; fallback a Play Store
+      const intentUrl =
+        "intent://calendar/r?cid=" + encodeURIComponent(ICLOUD_HTTPS) +
+        "#Intent;scheme=https;package=com.google.android.calendar;" +
+        "S.browser_fallback_url=" + encodeURIComponent(playStoreUrl) + ";end";
+      window.location.href = intentUrl;
+      return;
+    }
+
+    if (isIOS){
+      // Intento 1: esquema de Google Calendar (abre app si está instalada)
+      const appScheme = "comgooglecalendar://";
+      let didOpen = false;
+
+      const timer = setTimeout(() => {
+        if (!didOpen) {
+          // Fallback: App Store para instalar la app
+          if (window.self !== window.top) window.top.location.href = appStoreUrl;
+          else window.location.href = appStoreUrl;
+        }
+      }, 1200);
+
+      const blurHandler = () => { didOpen = true; clearTimeout(timer); window.removeEventListener('blur', blurHandler); };
+
+      window.addEventListener('blur', blurHandler, { once:true });
+
+      // Dispara el esquema; si la app no existe, no cambia el foco → cae al timeout
+      window.location.href = appScheme;
+
+      return;
+    }
+
+    // Otros dispositivos / fallback: usar flujo web de añadir calendario
+    if (window.self !== window.top) window.top.location.href = gcalAddUrl; else window.location.href = gcalAddUrl;
   });
 
   // Nav activo al hacer scroll (cosmético)
@@ -682,179 +574,108 @@ END:VCALENDAR
   sections.forEach(s=>obs.observe(s));
 </script>
 
-  <script>
-    const openBtn = document.getElementById('open-contact-options');
-    const modal   = document.getElementById('contact-modal');
-    const closeBtn= document.getElementById('close-modal');
-
-    if(openBtn && modal){
-      openBtn.addEventListener('click', e=>{
-        e.preventDefault();
-        modal.style.display = 'flex';
-      });
-    }
-    if(closeBtn){
-      closeBtn.addEventListener('click', ()=> modal.style.display='none');
-    }
-    window.addEventListener('click', e=>{
-      if(e.target === modal) modal.style.display='none';
-    });
-  </script>
-  <script>
-  // Oculta el header al bajar y lo muestra al subir (sin tocar el layout)
-  (function(){
-    const header = document.querySelector('header');
-    if (!header) return;
-
-    let lastY = window.scrollY || 0;
-    let downAccum = 0, upAccum = 0;
-    const THRESH = 12;      // píxeles de histéresis para evitar parpadeos
-    const MIN_TOP = 24;     // no ocultar si estamos pegados al tope
-
-    window.addEventListener('scroll', () => {
-      const y = window.scrollY || 0;
-      const delta = y - lastY;
-
-      if (delta > 0){
-        // Bajando
-        downAccum += delta; upAccum = 0;
-        if (y > MIN_TOP && downAccum > THRESH){
-          header.classList.add('hide');
-        }
-      } else if (delta < 0){
-        // Subiendo
-        upAccum += -delta; downAccum = 0;
-        if (upAccum > THRESH){
-          header.classList.remove('hide');
-        }
-        if (y <= 0){
-          header.classList.remove('hide');
-        }
-      }
-
-      lastY = y;
-    }, { passive: true });
-  })();
-  </script>
-</body>
+<!-- Auto-ocultar header en scroll -->
 <script>
-    window.addEventListener("load", () => {
-      document.documentElement.classList.add("loading");
-      const loader = document.getElementById("loader");
-      const canvas = document.getElementById("explosion-canvas");
-      const ctx = canvas ? canvas.getContext("2d") : null;
-      const DPR = Math.max(1, Math.floor(window.devicePixelRatio || 1));
-      let W = 0, H = 0;
+(function(){
+  const header = document.querySelector('header');
+  if (!header) return;
+  let lastY = window.scrollY || 0;
+  let downAccum = 0, upAccum = 0;
+  const THRESH = 12;
+  const MIN_TOP = 24;
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY || 0;
+    const delta = y - lastY;
+    if (delta > 0){
+      downAccum += delta; upAccum = 0;
+      if (y > MIN_TOP && downAccum > THRESH){ header.classList.add('hide'); }
+    } else if (delta < 0){
+      upAccum += -delta; downAccum = 0;
+      if (upAccum > THRESH){ header.classList.remove('hide'); }
+      if (y <= 0){ header.classList.remove('hide'); }
+    }
+    lastY = y;
+  }, { passive: true });
+})();
+</script>
 
-      function resize(){
-        if (!canvas) return;
-        W = canvas.clientWidth = loader.clientWidth;
-        H = canvas.clientHeight = loader.clientHeight;
-        canvas.width  = W * DPR;
-        canvas.height = H * DPR;
-        if (ctx) ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+<script>
+  // Loader (sin cambios funcionales)
+  window.addEventListener("load", () => {
+    document.documentElement.classList.add("loading");
+    const loader = document.getElementById("loader");
+    const canvas = document.getElementById("explosion-canvas");
+    const ctx = canvas ? canvas.getContext("2d") : null;
+    const DPR = Math.max(1, Math.floor(window.devicePixelRatio || 1));
+    let W = 0, H = 0;
+
+    function resize(){
+      if (!canvas) return;
+      W = canvas.clientWidth = loader.clientWidth;
+      H = canvas.clientHeight = loader.clientHeight;
+      canvas.width  = W * DPR;
+      canvas.height = H * DPR;
+      if (ctx) ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    const particles = [];
+    const DURATION = 1900;
+    const START = performance.now();
+
+    function spawnExplosion(){
+      const logo = document.querySelector('#loader .logo');
+      let cx = W / 2, cy = H / 2;
+      if (logo) {
+        const rect = logo.getBoundingClientRect();
+        const loaderRect = loader.getBoundingClientRect();
+        cx = (rect.left - loaderRect.left) + rect.width / 2;
+        cy = (rect.top  - loaderRect.top ) + rect.height / 2;
       }
-      resize();
-      window.addEventListener("resize", resize);
-
-      // Partículas para explosión de fuego (estilo fuegos artificiales cálidos)
-      const particles = [];
-      const DURATION = 1900; // explosión un poco más larga para cubrir más pantalla
-      const START = performance.now();
-
-      function spawnExplosion(){
-        // Calcular el centro del logo como origen de la explosión
-        const logo = document.querySelector('#loader .logo');
-        let cx = W / 2, cy = H / 2;
-        if (logo) {
-          const rect = logo.getBoundingClientRect();
-          const loaderRect = loader.getBoundingClientRect();
-          cx = (rect.left - loaderRect.left) + rect.width / 2;
-          cy = (rect.top  - loaderRect.top ) + rect.height / 2;
-        }
-        const N = 800; // MUCHAS partículas para abarcar más pantalla
-        for (let i = 0; i < N; i++){
-          const angle = (Math.PI * 2) * (i / N) + (Math.random() * 0.2);
-          const speed = 3.8 + Math.random() * 6.2; // más rápida para abrir más
-          const life  = 1000 + Math.random() * 800; // un poco más de vida
-          const size  = 5 + Math.random() * 9;      // chispas más grandes
-
-          // Paleta cálida: blanco -> amarillo -> naranja -> rojo
-          const hue = 30 + Math.random() * 30; // 30..60 (amarillo-naranja)
-          const sat = 90 + Math.random() * 10;
-          const lig = 55 + Math.random() * 30;
-          const color = `hsl(${hue} ${sat}% ${lig}%)`;
-
-          particles.push({
-            x: cx,
-            y: cy,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed,
-            alpha: 1,
-            size,
-            born: START,
-            life,
-            color
-          });
-        }
+      const N = 800;
+      for (let i = 0; i < N; i++){
+        const angle = (Math.PI * 2) * (i / N) + (Math.random() * 0.2);
+        const speed = 3.8 + Math.random() * 6.2;
+        const life  = 1000 + Math.random() * 800;
+        const size  = 5 + Math.random() * 9;
+        const hue = 30 + Math.random() * 30;
+        const sat = 90 + Math.random() * 10;
+        const lig = 55 + Math.random() * 30;
+        const color = `hsl(${hue} ${sat}% ${lig}%)`;
+        particles.push({ x:cx, y:cy, vx:Math.cos(angle)*speed, vy:Math.sin(angle)*speed, alpha:1, size, born:START, life, color });
       }
-
-      function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
-
-      function tick(now){
-        if (!ctx) return;
-        const elapsed = now - START;
-
-        // Fondeo: limpiar con un poco de transparencia para rastro suave
-        ctx.globalCompositeOperation = "source-over";
-        ctx.clearRect(0, 0, W, H);
-
-        // Encender modo aditivo para brillo de fuego
-        ctx.globalCompositeOperation = "lighter";
-
-        for (const p of particles){
-          const t = Math.min(1, (now - p.born) / p.life);
-          // expansión con ease
-          const k = easeOutCubic(t);
-          const drag = 0.98;
-          p.vx *= drag;
-          p.vy *= drag;
-          p.x += p.vx * (1.0 + k);
-          p.y += p.vy * (1.0 + k);
-
-          // gravedad ligera para sensación de chispas cayendo
-          p.vy += 0.015;
-
-          p.alpha = 1 - t;
-
-          ctx.globalAlpha = Math.max(0, p.alpha);
-          const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * (1 + 9*k));
-          grd.addColorStop(0, p.color);
-          grd.addColorStop(0.6, p.color);
-          grd.addColorStop(1, "rgba(0,0,0,0)");
-
-          ctx.fillStyle = grd;
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, p.size * (1 + 9*k), 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        // Terminar animación tras DURATION
-        if (elapsed < DURATION){
-          requestAnimationFrame(tick);
-        }
+    }
+    function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+    function tick(now){
+      if (!ctx) return;
+      const elapsed = now - START;
+      ctx.globalCompositeOperation = "source-over";
+      ctx.clearRect(0, 0, W, H);
+      ctx.globalCompositeOperation = "lighter";
+      for (const p of particles){
+        const t = Math.min(1, (now - p.born) / p.life);
+        const k = easeOutCubic(t);
+        const drag = 0.98;
+        p.vx *= drag; p.vy *= drag;
+        p.x += p.vx * (1.0 + k);
+        p.y += p.vy * (1.0 + k);
+        p.vy += 0.015;
+        p.alpha = 1 - t;
+        ctx.globalAlpha = Math.max(0, p.alpha);
+        const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * (1 + 9*k));
+        grd.addColorStop(0, p.color);
+        grd.addColorStop(0.6, p.color);
+        grd.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = grd;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * (1 + 9*k), 0, Math.PI * 2);
+        ctx.fill();
       }
-
-      if (ctx) {
-        spawnExplosion();
-        requestAnimationFrame(tick);
-      }
-
-      // Ocultar loader poco después de la explosión
-      setTimeout(() => {
-        loader.classList.add("hidden");
-        document.documentElement.classList.remove("loading");
-      }, 2100);
-    });
-  </script>
+      if (elapsed < DURATION){ requestAnimationFrame(tick); }
+    }
+    if (ctx) { spawnExplosion(); requestAnimationFrame(tick); }
+    setTimeout(() => { loader.classList.add("hidden"); document.documentElement.classList.remove("loading"); }, 2100);
+  });
+</script>
 </html>
