@@ -163,6 +163,7 @@
   .btn-g{background:#4285F4}
   .btn-i{background:#34C759}
   .btn-d{background:#0f172a}
+  .btn-r{background:#dc2626}
 
   /* Live YouTube styles */
   .live-wrap { display:none; margin-top:10px; border-radius:12px; overflow:hidden; box-shadow:0 6px 16px rgba(0,0,0,.2); background:#000 }
@@ -325,6 +326,16 @@
 
   <!-- CONTACTO -->
   <div class="footer">© 2025 — Iglesia. Todos los derechos reservados.</div>
+  <!-- Modal selector App/Web para Google Calendar -->
+  <div id="gcal-chooser" class="contact-modal" aria-hidden="true">
+    <div class="modal-content" role="dialog" aria-labelledby="gcal-title" aria-modal="true">
+      <h3 id="gcal-title" style="margin-top:0">Abrir Google Calendar</h3>
+      <p style="margin:6px 0 12px">Elige cómo quieres abrirlo:</p>
+      <a id="choose-web" href="#" class="btn btn-r">🌐 Abrir en la web</a>
+      <a id="choose-app" href="#" class="btn btn-g">📲 Abrir en la app</a>
+      <button id="gcal-cancel" class="btn-d" type="button">Cerrar</button>
+    </div>
+  </div>
 </main>
 
 <!-- =========================
@@ -664,57 +675,80 @@ const isAndroid = /Android/i.test(navigator.userAgent);
 
 document.getElementById("btn-gcal").addEventListener("click", function (event) {
   event.preventDefault();
-
-  if (isAndroid) {
-    const intentUrl = "intent://calendar.google.com/calendar/u/0?cid=" +
-      encodeURIComponent("72086005a3ac9a324642e6977fb8f296d531c3520b03c6cf342495ed215e0186@group.calendar.google.com") +
-      "#Intent;scheme=https;package=com.google.android.calendar;end";
-    const playStore = "https://play.google.com/store/apps/details?id=com.google.android.calendar";
-
-    if (window.self !== window.top) {
-      window.top.location.href = intentUrl;
-    } else {
-      window.location.href = intentUrl;
-    }
-
-    setTimeout(function () {
-      if (window.self !== window.top) {
-        window.top.location.href = playStore;
-      } else {
-        window.location.href = playStore;
-      }
-    }, 2000);
-
-  } else if (isIOS) { 
-    const gcalIOS = "comgooglecalendar://";
-    const altScheme = "googlecalendar://";
-    const appStore = "https://apps.apple.com/app/google-calendar/id909319292";
-
-    if (window.self !== window.top) {
-      window.top.location.href = gcalIOS;
-    } else {
-      window.location.href = gcalIOS;
-    }
-
-    setTimeout(function () {
-      if (window.self !== window.top) {
-        window.top.location.href = altScheme;
-      } else {
-        window.location.href = altScheme;
-      }
-    }, 600);
-
-    setTimeout(function () {
-      if (window.self !== window.top) {   // ← ya sin la 'p'
-        window.top.location.href = appStore;
-      } else {
-        window.location.href = appStore;
-      }
-    }, 2000);
-  }
+  const chooser = document.getElementById('gcal-chooser');
+  if (chooser) chooser.style.display = 'flex';
+  return;
 });
 </script>
   <script>
+  (function(){
+    const chooser   = document.getElementById('gcal-chooser');
+    const btnWeb    = document.getElementById('choose-web');
+    const btnApp    = document.getElementById('choose-app');
+    const btnClose  = document.getElementById('gcal-cancel');
+    if (!chooser || !btnWeb || !btnApp) return;
+
+    const GCAL_ID  = '72086005a3ac9a324642e6977fb8f296d531c3520b03c6cf342495ed215e0186@group.calendar.google.com';
+    const WEB_ADD  = 'https://calendar.google.com/calendar/r?cid=' + encodeURIComponent(GCAL_ID);
+    const PLAY     = 'https://play.google.com/store/apps/details?id=com.google.android.calendar';
+    const APPSTORE = 'https://apps.apple.com/app/google-calendar/id909319292';
+
+    function closeChooser(){ chooser.style.display = 'none'; }
+
+    // Abrir en Web
+    btnWeb.addEventListener('click', (e)=>{
+      e.preventDefault();
+      closeChooser();
+      if (window.self !== window.top) window.top.location.href = WEB_ADD; else window.location.href = WEB_ADD;
+    });
+
+    // Abrir en App
+    btnApp.addEventListener('click', (e)=>{
+      e.preventDefault();
+      closeChooser();
+
+      if (isAndroid) {
+        const intentUrl = 'intent://calendar/r?cid=' + encodeURIComponent(GCAL_ID) + '#Intent;scheme=https;package=com.google.android.calendar;end';
+        let finished = false;
+        const cleanup = () => { finished = true; clearTimeout(toWeb); clearTimeout(toStore); };
+
+        if (window.self !== window.top) window.top.location.href = intentUrl; else window.location.href = intentUrl;
+
+        const toWeb = setTimeout(()=>{
+          if (finished) return;
+          if (window.self !== window.top) window.top.location.href = WEB_ADD; else window.location.href = WEB_ADD;
+        }, 1200);
+        const toStore = setTimeout(()=>{
+          if (finished) return;
+          if (window.self !== window.top) window.top.location.href = PLAY; else window.location.href = PLAY;
+        }, 3000);
+        window.addEventListener('pagehide', cleanup, { once:true });
+        document.addEventListener('visibilitychange', ()=>{ if (document.hidden) cleanup(); }, { once:true });
+        return;
+      }
+
+      if (isIOS) {
+        const appScheme = 'comgooglecalendar://';
+        let opened = false;
+        const timer = setTimeout(()=>{
+          if (!opened) {
+            if (window.self !== window.top) window.top.location.href = APPSTORE; else window.location.href = APPSTORE;
+          }
+        }, 1200);
+        window.addEventListener('blur', ()=>{ opened = true; clearTimeout(timer); }, { once:true });
+        if (window.self !== window.top) window.top.location.href = appScheme; else window.location.href = appScheme;
+        return;
+      }
+
+      // Otros dispositivos → Web
+      if (window.self !== window.top) window.top.location.href = WEB_ADD; else window.location.href = WEB_ADD;
+    });
+
+    // Cerrar modal
+    if (btnClose) btnClose.addEventListener('click', closeChooser);
+    window.addEventListener('click', (e)=>{ if (e.target === chooser) closeChooser(); });
+  })();
+  </script>
     const openBtn = document.getElementById('open-contact-options');
     const modal   = document.getElementById('contact-modal');
     const closeBtn= document.getElementById('close-modal');
