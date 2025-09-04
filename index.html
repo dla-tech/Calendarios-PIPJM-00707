@@ -708,7 +708,7 @@ document.getElementById("btn-gcal").addEventListener("click", function (event) {
       closeChooser();
 
       if (isAndroid) {
-        const intentUrl = 'intent://calendar/r?cid=' + encodeURIComponent(GCAL_ID) + '#Intent;scheme=https;package=com.google.android.calendar;end';
+        const intentUrl = 'intent://calendar/r?cid=' + encodeURIComponent(GCAL_ID) + '#Intent;scheme=https;package=com.google.android.calendar;S.browser_fallback_url=' + encodeURIComponent(PLAY) + ';end';
         let finished = false;
         const cleanup = () => { finished = true; clearTimeout(toWeb); clearTimeout(toStore); };
 
@@ -728,14 +728,23 @@ document.getElementById("btn-gcal").addEventListener("click", function (event) {
       }
 
       if (isIOS) {
+        // iOS: intenta abrir la app de Google Calendar; si no está, redirige a App Store
+        // Nota: En iOS, la app puede no mostrar suscripción directa; esto intenta abrir la app igualmente.
         const appScheme = 'comgooglecalendar://';
+        const appStore  = APPSTORE; // ya definido arriba
         let opened = false;
-        const timer = setTimeout(()=>{
+
+        const failover = setTimeout(()=>{
           if (!opened) {
-            if (window.self !== window.top) window.top.location.href = APPSTORE; else window.location.href = APPSTORE;
+            if (window.self !== window.top) window.top.location.href = appStore; else window.location.href = appStore;
           }
         }, 1200);
-        window.addEventListener('blur', ()=>{ opened = true; clearTimeout(timer); }, { once:true });
+
+        // Si la app se abre, la página pierde foco (blur/visibilitychange)
+        const markOpened = () => { opened = true; clearTimeout(failover); };
+        window.addEventListener('blur', markOpened, { once:true });
+        document.addEventListener('visibilitychange', ()=>{ if (document.hidden) markOpened(); }, { once:true });
+
         if (window.self !== window.top) window.top.location.href = appScheme; else window.location.href = appScheme;
         return;
       }
