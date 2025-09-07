@@ -676,6 +676,8 @@ const isAndroid = /Android/i.test(navigator.userAgent);
 // --- Botón: mostrar opciones (Web/App) ---
 const CAL_ID  = "72086005a3ac9a324642e6977fb8f296d531c3520b03c6cf342495ed215e0186@group.calendar.google.com";
 const WEB_URL = "https://calendar.google.com/calendar/u/0/r?cid=" + encodeURIComponent(CAL_ID);
+// Bypass universal links so "Web" nunca abra la app
+const FORCE_WEB_URL = "https://www.google.com/url?source=web_app_bypass&amp;url=" + encodeURIComponent(WEB_URL);
 
 const choice    = document.getElementById("gcal-choice");
 const openWeb   = document.getElementById("gcal-open-web");
@@ -696,9 +698,9 @@ if (openWeb){
     e.preventDefault();
     hideChoice();
     if (window.self !== window.top) {
-      window.top.location.href = WEB_URL;
+      window.top.location.href = FORCE_WEB_URL;
     } else {
-      window.location.href = WEB_URL;
+      window.location.href = FORCE_WEB_URL;
     }
   });
 }
@@ -708,6 +710,8 @@ if (openApp){
   openApp.addEventListener("click", function(e){
     e.preventDefault();
     hideChoice();
+    // Abre la web en una pestaña nueva (para mostrar la suscripción web) y luego fuerza la app
+    try { window.open(FORCE_WEB_URL, '_blank', 'noopener'); } catch(e) {}
 
     if (isAndroid) {
       const intentUrl = "intent://calendar.google.com/calendar/u/0?cid=" +
@@ -778,9 +782,9 @@ if (openApp){
     } else {
       // Escritorio u otros: abre la versión web como fallback
       if (window.self !== window.top) {
-        window.top.location.href = WEB_URL;
+        window.top.location.href = FORCE_WEB_URL;
       } else {
-        window.location.href = WEB_URL;
+        window.location.href = FORCE_WEB_URL;
       }
     }
   });
