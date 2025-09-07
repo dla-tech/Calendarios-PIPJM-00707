@@ -727,7 +727,7 @@ if (openApp){
       // Si no abre, cae primero a Web Add; último recurso: Play Store.
       const PLAY = "https://play.google.com/store/apps/details?id=com.google.android.calendar";
       const intentUrl =
-        'intent://calendar/r?cid=' + encodeURIComponent(CAL_ID) +
+        'intent://calendar.google.com/calendar/r?cid=' + encodeURIComponent(CAL_ID) +
         '#Intent;scheme=https;package=com.google.android.calendar;' +
         'S.browser_fallback_url=' + encodeURIComponent(WEB_URL) + ';end';
 
