@@ -729,31 +729,31 @@ if (openApp){
       }, 2000);
 
     } else if (isIOS) {
-      const gcalIOS  = "comgooglecalendar://";
-      const altScheme= "googlecalendar://";
+      // iOS: la app de Google Calendar NO expone deep-link para "Agregar calendario por URL".
+      // Estrategia híbrida: 1) abrir la URL web que SÍ muestra el prompt de suscripción,
+      // 2) tras unos segundos, intentar abrir la app para que el usuario continúe ahí.
       const appStore = "https://apps.apple.com/app/google-calendar/id909319292";
-
-      if (window.self !== window.top) {
-        window.top.location.href = gcalIOS;
-      } else {
-        window.location.href = gcalIOS;
-      }
-
-      setTimeout(function () {
+      const tryOpen = (url) => {
         if (window.self !== window.top) {
-          window.top.location.href = altScheme;
+          window.top.location.href = url;
         } else {
-          window.location.href = altScheme;
+          window.location.href = url;
         }
-      }, 600);
-
+      };
+      // 1) Mostrar el diálogo "Agregar calendario" en la web
+      tryOpen(WEB_URL);
+      // 2) Dar tiempo para que el usuario confirme "Agregar", luego abrir la app
       setTimeout(function () {
-        if (window.self !== window.top) {
-          window.top.location.href = appStore;
-        } else {
-          window.location.href = appStore;
-        }
-      }, 2000);
+        tryOpen("comgooglecalendar://");
+      }, 2800);
+      // 3) Fallback alterno de esquema (por si el primero no existe)
+      setTimeout(function () {
+        tryOpen("googlecalendar://");
+      }, 3400);
+      // 4) Último fallback: App Store si nada respondió
+      setTimeout(function () {
+        tryOpen(appStore);
+      }, 5200);
     } else {
       // Escritorio u otros: abre la versión web como fallback
       if (window.self !== window.top) {
