@@ -680,7 +680,7 @@ const isAndroid = /Android/i.test(navigator.userAgent);
 const CAL_ID  = "72086005a3ac9a324642e6977fb8f296d531c3520b03c6cf342495ed215e0186@group.calendar.google.com";
 const WEB_URL = "https://calendar.google.com/calendar/u/0/r?cid=" + encodeURIComponent(CAL_ID);
 // Dynamic Link que abre la app si está instalada y, si no, va a la tienda
-const APP_LINK = "https://calendar.app.goo.gl/?link=" + encodeURIComponent(WEB_URL) + "&apn=com.google.android.calendar&ibi=com.google.calendar&isi=909319292";
+
 
 const choice    = document.getElementById("gcal-choice");
 const openWeb   = document.getElementById("gcal-open-web");
@@ -713,23 +713,82 @@ if (openWeb){
   });
 }
 
-// Nueva versión: abrir en la app (Dynamic Link oficial Google)
+// Abrir en la app: usa Dynamic Link para todos los casos
 if (openApp){
   openApp.addEventListener("click", function(e){
     e.preventDefault();
     hideChoice();
-    // En móviles, usa el Dynamic Link oficial de Google
-    if (isAndroid || isIOS) {
-      if (window.self !== window.top) { window.top.location.href = APP_LINK; }
-      else { window.location.href = APP_LINK; }
+
+    // Navega a una URL (considerando si estamos dentro de un iframe)
+    const go = (url) => {
+      if (window.self !== window.top) { window.top.location.href = url; }
+      else { window.location.href = url; }
+    };
+
+    if (isAndroid) {
+      // ANDROID: intenta abrir la app con intent + cid.
+      // Si no abre, cae primero a Web Add; último recurso: Play Store.
+      const PLAY = "https://play.google.com/store/apps/details?id=com.google.android.calendar";
+      const intentUrl =
+        'intent://calendar.google.com/calendar/r?cid=' + encodeURIComponent(CAL_ID) +
+        '#Intent;scheme=https;package=com.google.android.calendar;' +
+        'S.browser_fallback_url=' + encodeURIComponent(WEB_URL) + ';end';
+
+      let finished = false;
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        clearTimeout(toWeb);
+        clearTimeout(toStore);
+      };
+
+      // Dispara intent
+      go(intentUrl);
+
+      // Si realmente se abre la app, la página pierde foco/visibilidad
+      const onHidden = () => finish();
+      window.addEventListener('pagehide', onHidden, { once:true });
+      document.addEventListener('visibilitychange', () => { if (document.hidden) finish(); }, { once:true });
+      window.addEventListener('blur', onHidden, { once:true });
+
+      // Fallback 1: si seguimos visibles, usar Web (ahí sí pregunta para agregar)
+      const toWeb = setTimeout(() => {
+        if (!finished && !document.hidden) go(WEB_URL);
+      }, 2200);
+
+      // Fallback 2 (último recurso): Play Store si tampoco abrió ni fue a Web
+      const toStore = setTimeout(() => {
+        if (!finished && !document.hidden) go(PLAY);
+      }, 4500);
+
       return;
-    }
-    // En desktop u otros, abre la versión web
-    try {
-      const w = window.open(WEB_URL, "_blank", "noopener");
-      if (!w) window.location.href = WEB_URL;
-    } catch(_) {
-      window.location.href = WEB_URL;
+    } else if (isIOS) {
+      // iOS: intenta abrir la app con el CID directamente. Fallback: App Store.
+      const appUrl1 = "comgooglecalendar://?cid=" + encodeURIComponent(CAL_ID);
+      const appUrl2 = "googlecalendar://?cid=" + encodeURIComponent(CAL_ID);
+      const appStore = "https://apps.apple.com/app/google-calendar/id909319292";
+
+      let left = false;
+      const cleanup = () => {
+        document.removeEventListener("visibilitychange", onVis, true);
+        window.removeEventListener("pagehide", onHide, true);
+        window.removeEventListener("blur", onBlur, true);
+      };
+      const onVis  = () => { if (document.hidden) { left = true; cleanup(); } };
+      const onHide = () => { left = true; cleanup(); };
+      const onBlur = () => { left = true; cleanup(); };
+
+      document.addEventListener("visibilitychange", onVis, true);
+      window.addEventListener("pagehide", onHide, true);
+      window.addEventListener("blur", onBlur, true);
+
+      go(appUrl1);
+      setTimeout(() => { if (!left) go(appUrl2); }, 600);
+      setTimeout(() => { if (!left) go(appStore); }, 1800);
+
+    } else {
+      // Otros (desktop): abrir versión web como último recurso
+      go(WEB_URL);
     }
   });
 }
