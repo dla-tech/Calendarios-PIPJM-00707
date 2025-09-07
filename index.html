@@ -723,18 +723,37 @@ if (openApp){
     };
 
     if (isAndroid) {
-      // Android: Intent directo a la app con el calendario (cid). Fallback: Play Store.
+      // Android: intenta abrir la app con Intent. Solo envía a Play Store si NO se abrió.
       const intentUrl =
         "intent://calendar.google.com/calendar/u/0/r?cid=" +
         encodeURIComponent(CAL_ID) +
         "#Intent;scheme=https;package=com.google.android.calendar;end";
+      const playStore = "https://play.google.com/store/apps/details?id=com.google.android.calendar";
+
+      let left = false;
+      const cleanup = () => {
+        document.removeEventListener("visibilitychange", onVis, true);
+        window.removeEventListener("pagehide", onHide, true);
+        window.removeEventListener("blur", onBlur, true);
+      };
+      const onVis  = () => { if (document.hidden) { left = true; cleanup(); } };
+      const onHide = () => { left = true; cleanup(); };
+      const onBlur = () => { left = true; cleanup(); };
+
+      document.addEventListener("visibilitychange", onVis, true);
+      window.addEventListener("pagehide", onHide, true);
+      window.addEventListener("blur", onBlur, true);
+
+      // Lanza la app
       go(intentUrl);
 
+      // Fallback SOLO si seguimos visibles tras un breve tiempo
       setTimeout(() => {
-        if (!document.hidden) {
-          go("https://play.google.com/store/apps/details?id=com.google.android.calendar");
+        if (!left) {
+          go(playStore);
         }
-      }, 1500);
+        cleanup();
+      }, 1800);
     } else if (isIOS) {
       // iOS: intenta abrir la app con el CID directamente. Fallback: App Store.
       const appUrl1 = "comgooglecalendar://?cid=" + encodeURIComponent(CAL_ID);
