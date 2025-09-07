@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<script>document.documentElement.classList.add('loading');</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Programaciones mensuales</title>
 <style>
   /* Loader */
   /* Bloquea scroll durante el loader y asegura altura completa */
-  .loading html { height: 100%; }
-  .loading,
-  .loading body {
+  html.loading { height: 100%; }
+  html.loading,
+  html.loading body {
     overflow: hidden;
     height: 100%;
   }
@@ -729,10 +730,28 @@ if (openApp){
       }, 2000);
 
     } else if (isIOS) {
-      // iOS: flujo híbrido. 1) Abrir la web con el cid (muestra "Agregar este calendario"),
-      // 2) Intentar abrir la app (dos esquemas conocidos),
-      // 3) Fallback a App Store si no está la app.
+      // iOS: intenta abrir la APP; solo redirige a App Store si NO está instalada.
       const appStore = "https://apps.apple.com/app/google-calendar/id909319292";
+
+      let didHide = false; // se pondrá true si Safari pasa a background (app abierta)
+      let tAlt = null, tStore = null, tCleanup = null;
+
+      const cancelAll = () => {
+        if (tAlt)   clearTimeout(tAlt);
+        if (tStore) clearTimeout(tStore);
+        if (tCleanup) clearTimeout(tCleanup);
+        document.removeEventListener('visibilitychange', onVis, true);
+        window.removeEventListener('pagehide', onHide, true);
+        window.removeEventListener('blur', onBlur, true);
+      };
+      const onVis = () => { if (document.hidden) { didHide = true; cancelAll(); } };
+      const onHide = () => { didHide = true; cancelAll(); };
+      const onBlur = () => { didHide = true; cancelAll(); };
+
+      document.addEventListener('visibilitychange', onVis, true);
+      window.addEventListener('pagehide', onHide, true);
+      window.addEventListener('blur', onBlur, true);
+
       const tryOpen = (url) => {
         if (window.self !== window.top) {
           window.top.location.href = url;
@@ -740,20 +759,22 @@ if (openApp){
           window.location.href = url;
         }
       };
-      // 1) Muestra el diálogo de suscripción en la web
-      tryOpen(WEB_URL);
-      // 2) Da un respiro y luego intenta la app
-      setTimeout(function () {
-        tryOpen("comgooglecalendar://");
-      }, 1500);
-      // 2b) Esquema alternativo por si el primero no responde
-      setTimeout(function () {
-        tryOpen("googlecalendar://");
-      }, 2200);
-      // 3) Último recurso: App Store
-      setTimeout(function () {
-        tryOpen(appStore);
-      }, 3800);
+
+      // 1) Intenta abrir la app (esquema principal)
+      tryOpen("comgooglecalendar://");
+
+      // 2) Si en ~700ms no cambió la visibilidad, intenta esquema alternativo
+      tAlt = setTimeout(() => {
+        if (!didHide) tryOpen("googlecalendar://");
+      }, 700);
+
+      // 3) Si después de ~2000ms seguimos en la página, asume que no hay app => App Store
+      tStore = setTimeout(() => {
+        if (!didHide) tryOpen(appStore);
+      }, 2000);
+
+      // Limpieza de seguridad a los 8s por si el usuario vuelve desde la app
+      tCleanup = setTimeout(cancelAll, 8000);
     } else {
       // Escritorio u otros: abre la versión web como fallback
       if (window.self !== window.top) {
@@ -834,7 +855,6 @@ if (choice){
 </body>
 <script>
     window.addEventListener("load", () => {
-      document.documentElement.classList.add("loading");
       const loader = document.getElementById("loader");
       const canvas = document.getElementById("explosion-canvas");
       const ctx = canvas ? canvas.getContext("2d") : null;
