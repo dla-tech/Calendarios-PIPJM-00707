@@ -672,6 +672,19 @@ document.getElementById("btn-ios").addEventListener("click", function(event) {
 const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 const isAndroid = /Android/i.test(navigator.userAgent);
 
+// Ajusta el texto del botón "Abrir en la app" según el dispositivo
+(function(){
+  const btn = document.getElementById("gcal-open-app");
+  if (!btn) return;
+  if (isAndroid) {
+    btn.textContent = "📱 Abrir en la app";
+  } else if (isIOS) {
+    btn.textContent = "📱 Agregar (iPhone abrirá la web)";
+  } else {
+    btn.textContent = "📱 Abrir en la app";
+  }
+})();
+
 // --- Botón: mostrar opciones (Web/App) ---
 const CAL_ID  = "72086005a3ac9a324642e6977fb8f296d531c3520b03c6cf342495ed215e0186@group.calendar.google.com";
 const WEB_URL = "https://calendar.google.com/calendar/u/0/r?cid=" + encodeURIComponent(CAL_ID);
@@ -729,31 +742,13 @@ if (openApp){
       }, 2000);
 
     } else if (isIOS) {
-      // iOS: la app de Google Calendar NO expone deep-link para "Agregar calendario por URL".
-      // Estrategia híbrida: 1) abrir la URL web que SÍ muestra el prompt de suscripción,
-      // 2) tras unos segundos, intentar abrir la app para que el usuario continúe ahí.
-      const appStore = "https://apps.apple.com/app/google-calendar/id909319292";
-      const tryOpen = (url) => {
-        if (window.self !== window.top) {
-          window.top.location.href = url;
-        } else {
-          window.location.href = url;
-        }
-      };
-      // 1) Mostrar el diálogo "Agregar calendario" en la web
-      tryOpen(WEB_URL);
-      // 2) Dar tiempo para que el usuario confirme "Agregar", luego abrir la app
-      setTimeout(function () {
-        tryOpen("comgooglecalendar://");
-      }, 2800);
-      // 3) Fallback alterno de esquema (por si el primero no existe)
-      setTimeout(function () {
-        tryOpen("googlecalendar://");
-      }, 3400);
-      // 4) Último fallback: App Store si nada respondió
-      setTimeout(function () {
-        tryOpen(appStore);
-      }, 5200);
+      // En iPhone/iPad, la forma confiable de mostrar el diálogo "Agregar este calendario"
+      // es abrir la versión web con el cid. (La app no expone deep-link para suscripción).
+      if (window.self !== window.top) {
+        window.top.location.href = WEB_URL;
+      } else {
+        window.location.href = WEB_URL;
+      }
     } else {
       // Escritorio u otros: abre la versión web como fallback
       if (window.self !== window.top) {
