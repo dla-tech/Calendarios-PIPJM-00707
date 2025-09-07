@@ -5,326 +5,212 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Programaciones mensuales</title>
+<style>
+  /* Loader */
+  /* Bloquea scroll durante el loader y asegura altura completa */
+  html.loading { height: 100%; }
+  html.loading,
+  html.loading body {
+    overflow: hidden;
+    height: 100%;
+  }
+  #loader {
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(180deg, #1a0a00 0%, #3b0f00 20%, #7a1b00 45%, #c74300 70%, #ff9a00 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: opacity 1s ease;
+    height: 100dvh;
+    min-height: 100vh;       /* fallback clásico */
+    width: 100vw;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    pointer-events: all;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  @supports (height: 100svh) {
+    #loader { height: 100svh; }
+  }
+  @supports (height: 100lvh) {
+    #loader { height: 100lvh; }
+  }
+  #loader .explosion {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+  }
+  #loader .logo {
+    width: 320px;
+    animation: pulse 1.5s infinite;
+    position: relative;
+    z-index: 10; /* encima */
+  }
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
+  #loader.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  :root{
+    --bg:url("https://raw.githubusercontent.com/dla-tech/Media-privada/refs/heads/main/IMG_7782.jpeg");
+    --card: rgba(255,255,255,.86);
+    --ink: #0b1421;
+    --accent: #2563eb;
+    --shadow: 0 8px 20px rgba(0,0,0,.15);
+    --radius: 14px;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    background:#0b1421; min-height:100svh;
+  }
+  body::before{content:"";position:fixed;inset:0;background-image:var(--bg);background-size:cover;background-position:center;filter:brightness(.9) saturate(.9);z-index:-2}
+  body::after{content:"";position:fixed;inset:0;background:linear-gradient(180deg,rgba(8,11,20,.35),rgba(8,11,20,.6));z-index:-1}
 
+  /* ===== NAV responsive y ordenado ===== */
+  header{
+    position:sticky; top:0; z-index:50;
+    backdrop-filter:saturate(1.2) blur(8px);
+    background:rgba(255,255,255,.55);
+    border-bottom:1px solid rgba(0,0,0,.08);
+  }
+  /* Auto-ocultar barra en scroll */
+  header{ transition: transform .4s ease; will-change: transform; }
+  header.hide{ transform: translateY(-100%); }
+
+  /* MÓVIL: grilla de botones iguales */
+  .nav{
+    max-width:1100px; margin:0 auto; padding:8px 10px;
+    display:grid; gap:8px;
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas en móvil */
+  }
+  .nav .spacer{ display:none; } /* no hace falta en móvil */
+  .nav a{
+    display:block;
+    text-align:center;
+    text-decoration:none;
+    font-weight:600;
+    color:#0b1421;
+    padding:10px 10px;
+    font-size:14px;
+    border-radius:10px;
+    border:1px solid rgba(0,0,0,.08);
+    background:rgba(255,255,255,.5);
+  }
+  .nav a.active{
+    background:#e9efff;
+    color:#2563eb;
+    border-color:rgba(37,99,235,.25);
+  }
+
+  /* iOS compacto: mantén 2 columnas pero reduce tamaño visual */
+  @supports (-webkit-touch-callout: none){
+    @media (max-width: 430px){
+      .nav{ padding:8px 10px; gap:8px; }
+      .nav a{ padding:9px 10px; font-size:13.5px; border-radius:10px; }
+    }
+    @media (max-width: 360px){
+      .nav{ padding:6px 8px; gap:6px; }
+      .nav a{ padding:8px 8px; font-size:13px; }
+    }
+  }
+
+  /* TABLET+: vuelve a barra horizontal */
+  @media (min-width: 768px){
+    .nav{
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+      padding:10px 16px;
+    }
+    .nav .spacer{ flex:1; display:block; }
+    .nav a{
+      padding:10px 12px;
+      min-width:auto;
+      background:transparent;
+      border:0;
+    }
+    .nav a.active{
+      background:#e9efff;
+      border:0;
+    }
+  }
+  .wrap{max-width:1100px; margin:0 auto; padding:22px 16px}
+
+  .card{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px}
+  h1,h2{color:#fff; text-align:center; margin:10px 0 14px}
+  section{scroll-margin-top:80px; margin-bottom:22px}
+  iframe{border:0; width:100%; border-radius:10px}
+  .grid{display:grid; gap:12px}
+  @media(min-width:720px){
+    .grid.cols-2{grid-template-columns:1fr 1fr}
+    .grid.cols-3{grid-template-columns:repeat(3,1fr)}
+  }
+  .grid.cols-1{grid-template-columns:1fr}
+  .subhead{margin:0 0 6px; font-weight:700; color:#0b1421}
+
+  .btn{display:block; text-align:center; text-decoration:none; padding:14px 16px;
+       border-radius:12px; font-weight:700; color:#fff}
+  .btn-g{background:#34C759}
+  .btn-i{background:#4285F4}
+  .btn-d{background:#0f172a}
+  .btn-y{background:#facc15; color:#000;}
+  .btn-yt{background:#ff0000; color:#fff;}
+
+  /* Live YouTube styles */
+  .live-wrap { display:none; margin-top:10px; border-radius:12px; overflow:hidden; box-shadow:0 6px 16px rgba(0,0,0,.2); background:#000 }
+  .live-head { display:flex; align-items:center; gap:8px; padding:10px 12px; color:#fff; font-weight:800; letter-spacing:.2px; background:linear-gradient(90deg,#b91c1c,#ef4444) }
+  .live-dot { width:10px; height:10px; border-radius:999px; background:#fff; box-shadow:0 0 8px rgba(255,255,255,.9) }
+  .live-player { position:relative; aspect-ratio:16/9; background:#000 }
+  .live-player iframe { position:absolute; inset:0; width:100%; height:100%; border:0 }
+  .live-cta { display:block; padding:10px 12px; text-align:center; text-decoration:none; color:#fff; font-weight:700; background:#111 }
+
+  .note{font-size:.92em; opacity:.8}
+  .list{margin:0; padding-left:18px}
+  .footer{color:#e5e7eb; text-align:center; font-size:.9em; padding:26px 0}
+
+  /* Modal contacto */
+  .contact-modal {
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,0.6);
+    align-items:center; justify-content:center;
+    z-index:10000;
+  }
+  .contact-modal .modal-content {
+    background:#fff; padding:20px; border-radius:12px;
+    text-align:center; max-width:300px; width:90%;
+    box-shadow:0 6px 16px rgba(0,0,0,.25);
+  }
+  .contact-modal .btn {
+    display:block; margin:10px 0; text-decoration:none;
+    padding:12px; border-radius:8px; color:#fff; font-weight:600;
+  }
+  .contact-modal .btn-d {
+    display:block;
+    margin:10px 0;
+    padding:12px;
+    border-radius:8px;
+    color:#fff;
+    font-weight:600;
+    background:#444;
+    border:none;
+    width:100%;
+    text-align:center;
+  }
+</style>
 </head>
 <body>
-  <style>
-    /* Loader */
-    html.loading { height: 100%; }
-    html.loading,
-    html.loading body {
-      overflow: hidden;
-      height: 100%;
-    }
-    #loader {
-      position: fixed;
-      inset: 0;
-      background: linear-gradient(180deg, #1a0a00 0%, #3b0f00 20%, #7a1b00 45%, #c74300 70%, #ff9a00 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      transition: opacity 1s ease;
-      height: 100dvh;
-      min-height: 100vh;
-      width: 100vw;
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      pointer-events: all;
-      padding-bottom: env(safe-area-inset-bottom);
-    }
-    @supports (height: 100svh) {
-      #loader { height: 100svh; }
-    }
-    @supports (height: 100lvh) {
-      #loader { height: 100lvh; }
-    }
-    #loader .explosion {
-      position: absolute;
-      inset: 0;
-      z-index: 1;
-      pointer-events: none;
-      width: 100%;
-      height: 100%;
-    }
-    #loader .logo {
-      width: 320px;
-      animation: pulse 1.5s infinite;
-      position: relative;
-      z-index: 10;
-    }
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); }
-    }
-    #loader.hidden {
-      opacity: 0;
-      pointer-events: none;
-    }
-  
-    :root {
-      --bg: url("https://raw.githubusercontent.com/dla-tech/Media-privada/refs/heads/main/IMG_7782.jpeg");
-      --card: rgba(255,255,255,.86);
-      --ink: #0b1421;
-      --accent: #2563eb;
-      --shadow: 0 8px 20px rgba(0,0,0,.15);
-      --radius: 14px;
-    }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      color: var(--ink);
-      background: #0b1421;
-      min-height: 100svh;
-    }
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background-image: var(--bg);
-      background-size: cover;
-      background-position: center;
-      filter: brightness(.9) saturate(.9);
-      z-index: -2;
-    }
-    body::after {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(8,11,20,.35), rgba(8,11,20,.6));
-      z-index: -1;
-    }
-  
-    header {
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      backdrop-filter: saturate(1.2) blur(8px);
-      background: rgba(255,255,255,.55);
-      border-bottom: 1px solid rgba(0,0,0,.08);
-      transition: transform .4s ease;
-      will-change: transform;
-    }
-    header.hide {
-      transform: translateY(-100%);
-    }
-  
-    .nav {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 8px 10px;
-      display: grid;
-      gap: 8px;
-      grid-template-columns: repeat(2, 1fr);
-    }
-    .nav .spacer { display: none; }
-    .nav a {
-      display: block;
-      text-align: center;
-      text-decoration: none;
-      font-weight: 600;
-      color: #0b1421;
-      padding: 10px 10px;
-      font-size: 14px;
-      border-radius: 10px;
-      border: 1px solid rgba(0,0,0,.08);
-      background: rgba(255,255,255,.5);
-    }
-    .nav a.active {
-      background: #e9efff;
-      color: #2563eb;
-      border-color: rgba(37,99,235,.25);
-    }
-  
-    @supports (-webkit-touch-callout: none) {
-      @media (max-width: 430px) {
-        .nav { padding: 8px 10px; gap: 8px; }
-        .nav a { padding: 9px 10px; font-size: 13.5px; border-radius: 10px; }
-      }
-      @media (max-width: 360px) {
-        .nav { padding: 6px 8px; gap: 6px; }
-        .nav a { padding: 8px 8px; font-size: 13px; }
-      }
-    }
-  
-    @media (min-width: 768px) {
-      .nav {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        flex-wrap: wrap;
-        padding: 10px 16px;
-      }
-      .nav .spacer { flex: 1; display: block; }
-      .nav a {
-        padding: 10px 12px;
-        min-width: auto;
-        background: transparent;
-        border: 0;
-      }
-      .nav a.active {
-        background: #e9efff;
-        border: 0;
-      }
-    }
-  
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 22px 16px; }
-    .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px; }
-    h1, h2 { color: #fff; text-align: center; margin: 10px 0 14px; }
-    section { scroll-margin-top: 80px; margin-bottom: 22px; }
-    iframe { border: 0; width: 100%; border-radius: 10px; }
-    .grid { display: grid; gap: 12px; }
-    @media(min-width:720px){
-      .grid.cols-2 { grid-template-columns: 1fr 1fr; }
-      .grid.cols-3 { grid-template-columns: repeat(3,1fr); }
-    }
-    .grid.cols-1 { grid-template-columns: 1fr; }
-    .subhead { margin: 0 0 6px; font-weight: 700; color: #0b1421; }
-  
-    .btn {
-      display: block;
-      text-align: center;
-      text-decoration: none;
-      padding: 14px 16px;
-      border-radius: 12px;
-      font-weight: 700;
-      color: #fff;
-    }
-    .btn-g { background: #34C759; }
-    .btn-i { background: #4285F4; }
-    .btn-d { background: #0f172a; }
-    .btn-y { background: #facc15; color: #000; }
-    .btn-yt { background: #ff0000; color: #fff; }
-  
-    .live-wrap {
-      display: none;
-      margin-top: 10px;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 6px 16px rgba(0,0,0,.2);
-      background: #000;
-    }
-    .live-head {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 12px;
-      color: #fff;
-      font-weight: 800;
-      letter-spacing: .2px;
-      background: linear-gradient(90deg,#b91c1c,#ef4444);
-    }
-    .live-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      background: #fff;
-      box-shadow: 0 0 8px rgba(255,255,255,.9);
-    }
-    .live-player {
-      position: relative;
-      aspect-ratio: 16/9;
-      background: #000;
-    }
-    .live-player iframe {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      border: 0;
-    }
-    .live-cta {
-      display: block;
-      padding: 10px 12px;
-      text-align: center;
-      text-decoration: none;
-      color: #fff;
-      font-weight: 700;
-      background: #111;
-    }
-  
-    .note { font-size: .92em; opacity: .8; }
-    .list { margin: 0; padding-left: 18px; }
-    .footer { color: #e5e7eb; text-align: center; font-size: .9em; padding: 26px 0; }
-  
-    .contact-modal {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      align-items: center;
-      justify-content: center;
-      z-index: 10000;
-    }
-    .contact-modal .modal-content {
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      text-align: center;
-      max-width: 300px;
-      width: 90%;
-      box-shadow: 0 6px 16px rgba(0,0,0,.25);
-    }
-    .contact-modal .btn {
-      display: block;
-      margin: 10px 0;
-      text-decoration: none;
-      padding: 12px;
-      border-radius: 8px;
-      color: #fff;
-      font-weight: 600;
-    }
-    .contact-modal .btn-d {
-      display: block;
-      margin: 10px 0;
-      padding: 12px;
-      border-radius: 8px;
-      color: #fff;
-      font-weight: 600;
-      background: #444;
-      border: none;
-      width: 100%;
-      text-align: center;
-    }
-  
-    /* 🎯 NUEVO: Estilos para centrar los botones de calendario */
-    .calendar-buttons {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      margin-top: 24px;
-      gap: 12px;
-    }
-  
-    .calendar-buttons button {
-      font-size: 16px;
-      padding: 14px 24px;
-      border: none;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: transform 0.2s ease;
-    }
-  
-    .calendar-buttons button:hover {
-      transform: scale(1.04);
-    }
-  
-    .apple-button {
-      background-color: #007aff;
-      color: white;
-    }
-  
-    .android-button {
-      background-color: #34a853;
-      color: white;
-    }
-  </style>
+
   <!-- Pantalla de carga -->
   <div id="loader">
     <canvas class="explosion" id="explosion-canvas"></canvas>
@@ -357,57 +243,20 @@
     </div>
 
     <div class="grid cols-3">
-      <a href="webcal://p158-caldav.icloud.com/published/2/MTYyMzg4NDUwMjAxNjIzOFc_RCw-iCOSeM_LMqkWZcQMuX9sTzZF-PyrU9d06Oy4V0VhxUSZVqCmqzUsygyCHgAllfl2DFW34WcFi8EvPD8"
-         class="btn btn-ios"
-         style="padding: 14px 20px; font-size: 16px; font-weight: bold; border: none; border-radius: 10px; background: #007aff; color: white; text-decoration: none; display: inline-block;">
-         🍎 Abrir en Apple Calendar
-      </a>
-
-      <!-- BOTÓN PRINCIPAL: Google Calendar / Android -->
-      <button onclick="document.getElementById('calendarModal').style.display='flex'" class="btn btn-android" style="padding: 14px 20px; font-size: 16px; font-weight: bold; border: none; border-radius: 10px; background: #22c55e; color: white; display:inline-block;">
-        🤖 Google Calendar / Android
-      </button>
-
-      <!-- Google Calendar App Modal -->
-      <div id="calendarModal" style="display:none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;">
-        <div style="background: white; padding: 25px; border-radius: 20px; text-align: center; width: 90%; max-width: 320px; font-family: sans-serif;">
-          <h3 style="margin-bottom: 20px; font-weight: bold;">¿Cómo quieres abrirlo?</h3>
-          <button onclick="window.location.href='https://calendar.google.com/calendar/embed?src=72086005a3ac9a324642e6977fb8f296d531c3520b03c6cf342495ed215e0186%40group.calendar.google.com&ctz=America%2FPuerto_Rico'" style="background: #22c55e; color: white; font-size: 16px; padding: 14px 20px; border: none; border-radius: 12px; margin-bottom: 10px; width: 100%;">🌐 Abrir en la web</button>
-          <button onclick="openCalendarSmart()" style="background: #333; color: white; font-size: 16px; padding: 14px 20px; border: none; border-radius: 12px; margin-bottom: 10px; width: 100%;">📱 Abrir en la app</button>
-          <button onclick="document.getElementById('calendarModal').style.display='none'" style="background: #e5e7eb; color: #111; font-size: 16px; padding: 14px 20px; border: none; border-radius: 12px; width: 100%;">Cancelar</button>
-        </div>
-      </div>
+      <a id="btn-gcal" class="btn btn-g" href="#" target="_self">🟢 Añadir en Google Calendar (Android/PC)</a>
+      <a id="btn-ios" class="btn btn-i" href="#" target="_self">📱 Añadir en Apple Calendar (iPhone/Mac)</a>
+      <a id="btn-download" class="btn btn-y" href="#" target="_self">⬇️ Descargar Google Calendar</a>
     </div>
 
-</main>
-
-
-</main>
-
-<script>
-function openCalendarSmart() {
-  const calendarID = "72086005a3ac9a324642e6977fb8f296d531c3520b03c6cf342495ed215e0186@group.calendar.google.com";
-  const calendarSubscribeURL = `https://calendar.google.com/calendar/r?cid=${calendarID}`;
-  const androidIntent = "intent://calendar/#Intent;package=com.google.android.calendar;scheme=https;end";
-  const iosLink = "googlecalendar://";
-
-  const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-
-  if (/android/i.test(userAgent)) {
-    window.location.href = androidIntent;
-    setTimeout(() => {
-      window.location.href = calendarSubscribeURL;
-    }, 800);
-  } else if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
-    window.location.href = iosLink;
-    setTimeout(() => {
-      window.location.href = calendarSubscribeURL;
-    }, 800);
-  } else {
-    window.location.href = calendarSubscribeURL;
-  }
-}
-</script>
+    <!-- Modal de elección para Google Calendar -->
+    <div id="gcal-choice" class="contact-modal">
+      <div class="modal-content">
+        <h3 style="margin:0 0 10px">¿Cómo quieres abrirlo?</h3>
+        <a id="gcal-open-web" class="btn btn-g" href="#">🌐 Abrir en la web</a>
+        <button id="gcal-open-app" class="btn-d">📱 Abrir en la app</button>
+        <button id="gcal-cancel" class="btn-d" style="background:#6b7280">Cancelar</button>
+      </div>
+    </div>
 
     <p class="card note" style="margin-top:12px">
       📌 Todo cambio en la programación de la iglesia se reflejará automáticamente en tu calendario.
@@ -808,7 +657,189 @@ END:VCALENDAR
 })();
 </script>
 <!-- ===== Botones de suscripción (iCloud/Google) ===== -->
+<script>
+document.getElementById("btn-ios").addEventListener("click", function(event) {
+  event.preventDefault();
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const url = "webcal://p158-caldav.icloud.com/published/2/MTYyMzg4NDUwMjAxNjIzOFc_RCw-iCOSeM_LMqkWZcQMuX9sTzZF-PyrU9d06Oy4V0VhxUSZVqCmqzUsygyCHgAllfl2DFW34WcFi8EvPD8";
 
+  if (window.self !== window.top && isIOS) {
+    window.top.location.href = url;
+  } else {
+    window.location.href = url;
+  }
+  setTimeout(function() {
+    alert("Si no se abrió el calendario, copia y pega este enlace en Safari:\n" + url);
+  }, 2500);
+});
+
+const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+const isAndroid = /Android/i.test(navigator.userAgent);
+
+// --- Botón: mostrar opciones (Web/App) ---
+const CAL_ID  = "72086005a3ac9a324642e6977fb8f296d531c3520b03c6cf342495ed215e0186@group.calendar.google.com";
+const WEB_URL = "https://calendar.google.com/calendar/u/0/r?cid=" + encodeURIComponent(CAL_ID);
+// Dynamic Link que abre la app si está instalada y, si no, va a la tienda
+
+
+const choice    = document.getElementById("gcal-choice");
+const openWeb   = document.getElementById("gcal-open-web");
+const openApp   = document.getElementById("gcal-open-app");
+const cancelBtn = document.getElementById("gcal-cancel");
+
+function hideChoice(){ if (choice) choice.style.display = "none"; }
+function showChoice(){ if (choice) choice.style.display = "flex"; }
+
+document.getElementById("btn-gcal").addEventListener("click", function (event) {
+  event.preventDefault();
+  showChoice();
+});
+
+// Abrir en la web: URL que pide suscribirse al calendario
+if (openWeb){
+  openWeb.addEventListener("click", function(e){
+    e.preventDefault();
+    hideChoice();
+    // Abrimos la VERSIÓN WEB en nueva pestaña para minimizar cualquier deep link
+    try {
+      const w = window.open(WEB_URL, "_blank", "noopener");
+      if (!w) {
+        // Si el navegador bloquea popups, navega en la misma pestaña
+        window.location.href = WEB_URL;
+      }
+    } catch(_) {
+      window.location.href = WEB_URL;
+    }
+  });
+}
+
+// Abrir en la app: usa Dynamic Link para todos los casos
+if (openApp){
+  openApp.addEventListener("click", function(e){
+    e.preventDefault();
+    hideChoice();
+
+    // Navega a una URL (considerando si estamos dentro de un iframe)
+    const go = (url) => {
+      if (window.self !== window.top) { window.top.location.href = url; }
+      else { window.location.href = url; }
+    };
+
+    if (isAndroid) {
+      // ANDROID: intenta abrir la app con intent + cid.
+      // Si no abre, cae primero a Web Add; último recurso: Play Store.
+      const PLAY = "https://play.google.com/store/apps/details?id=com.google.android.calendar";
+      const intentUrl =
+        'intent://calendar.google.com/calendar/r?cid=' + encodeURIComponent(CAL_ID) +
+        '#Intent;scheme=https;package=com.google.android.calendar;' +
+        'S.browser_fallback_url=' + encodeURIComponent(WEB_URL) + ';end';
+
+      let finished = false;
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        clearTimeout(toWeb);
+        clearTimeout(toStore);
+      };
+
+      // Dispara intent
+      go(intentUrl);
+
+      // Si realmente se abre la app, la página pierde foco/visibilidad
+      const onHidden = () => finish();
+      window.addEventListener('pagehide', onHidden, { once:true });
+      document.addEventListener('visibilitychange', () => { if (document.hidden) finish(); }, { once:true });
+      window.addEventListener('blur', onHidden, { once:true });
+
+      // Fallback 1: si seguimos visibles, usar Web (ahí sí pregunta para agregar)
+      const toWeb = setTimeout(() => {
+        if (!finished && !document.hidden) go(WEB_URL);
+      }, 2200);
+
+      // Fallback 2 (último recurso): Play Store si tampoco abrió ni fue a Web
+      const toStore = setTimeout(() => {
+        if (!finished && !document.hidden) go(PLAY);
+      }, 4500);
+
+      return;
+    } else if (isIOS) {
+      // iOS: intenta abrir la app con el CID directamente. Fallback: App Store.
+      const appUrl1 = "comgooglecalendar://?cid=" + encodeURIComponent(CAL_ID);
+      const appUrl2 = "googlecalendar://?cid=" + encodeURIComponent(CAL_ID);
+      const appStore = "https://apps.apple.com/app/google-calendar/id909319292";
+
+      let left = false;
+      const cleanup = () => {
+        document.removeEventListener("visibilitychange", onVis, true);
+        window.removeEventListener("pagehide", onHide, true);
+        window.removeEventListener("blur", onBlur, true);
+      };
+      const onVis  = () => { if (document.hidden) { left = true; cleanup(); } };
+      const onHide = () => { left = true; cleanup(); };
+      const onBlur = () => { left = true; cleanup(); };
+
+      document.addEventListener("visibilitychange", onVis, true);
+      window.addEventListener("pagehide", onHide, true);
+      window.addEventListener("blur", onBlur, true);
+
+      go(appUrl1);
+      setTimeout(() => { if (!left) go(appUrl2); }, 600);
+      setTimeout(() => { if (!left) go(appStore); }, 1800);
+
+    } else {
+      // Otros (desktop): abrir versión web como último recurso
+      go(WEB_URL);
+    }
+  });
+}
+
+// Botón de descarga Google Calendar
+const btnDownload = document.getElementById("btn-download");
+if (btnDownload){
+  btnDownload.addEventListener("click", function(e){
+    e.preventDefault();
+    const PLAY = "https://play.google.com/store/apps/details?id=com.google.android.calendar";
+    const APPSTORE = "https://apps.apple.com/app/google-calendar/id909319292";
+    if (isAndroid) {
+      window.location.href = PLAY;
+    } else if (isIOS) {
+      window.location.href = APPSTORE;
+    } else {
+      window.location.href = "https://calendar.google.com/"; // fallback
+    }
+  });
+}
+
+// Cerrar modal
+if (cancelBtn){
+  cancelBtn.addEventListener("click", function(){
+    hideChoice();
+  });
+}
+if (choice){
+  choice.addEventListener("click", function(e){
+    if (e.target === choice) hideChoice();
+  });
+}
+</script>
+  <script>
+    const openBtn = document.getElementById('open-contact-options');
+    const modal   = document.getElementById('contact-modal');
+    const closeBtn= document.getElementById('close-modal');
+
+    if(openBtn && modal){
+      openBtn.addEventListener('click', e=>{
+        e.preventDefault();
+        modal.style.display = 'flex';
+      });
+    }
+    if(closeBtn){
+      closeBtn.addEventListener('click', ()=> modal.style.display='none');
+    }
+    window.addEventListener('click', e=>{
+      if(e.target === modal) modal.style.display='none';
+    });
+  </script>
   <script>
   // Oculta el header al bajar y lo muestra al subir (sin tocar el layout)
   (function(){
