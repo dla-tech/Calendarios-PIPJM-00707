@@ -657,170 +657,104 @@ END:VCALENDAR
 })();
 </script>
 <!-- ===== Botones de suscripción (iCloud/Google) ===== -->
+<!-- ===== Botones de suscripción (iCloud/Google) ===== -->
 <script>
-document.getElementById("btn-ios").addEventListener("click", function(event) {
-  event.preventDefault();
-  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-  const url = "webcal://p158-caldav.icloud.com/published/2/MTYyMzg4NDUwMjAxNjIzOFc_RCw-iCOSeM_LMqkWZcQMuX9sTzZF-PyrU9d06Oy4V0VhxUSZVqCmqzUsygyCHgAllfl2DFW34WcFi8EvPD8";
+  // Fuentes del calendario
+  const ICLOUD_WEBCAL = "webcal://p158-caldav.icloud.com/published/2/MTYyMzg4NDUwMjAxNjIzOFc_RCw-iCOSeM_LMqkWZcQMuX9sTzZF-PyrU9d06Oy4V0VhxUSZVqCmqzUsygyCHgAllfl2DFW34WcFi8EvPD8";
+  const ICLOUD_HTTPS  = "https://p158-caldav.icloud.com/published/2/MTYyMzg4NDUwMjAxNjIzOFc_RCw-iCOSeM_LMqkWZcQMuX9sTzZF-PyrU9d06Oy4V0VhxUSZVqCmqzUsygyCHgAllfl2DFW34WcFi8EvPD8.ics";
+  const GCAL_CALENDAR_ID = "72086005a3ac9a324642e6977fb8f296d531c3520b03c6cf342495ed215e0186@group.calendar.google.com";
 
-  if (window.self !== window.top && isIOS) {
-    window.top.location.href = url;
-  } else {
-    window.location.href = url;
-  }
-  setTimeout(function() {
-    alert("Si no se abrió el calendario, copia y pega este enlace en Safari:\n" + url);
-  }, 2500);
-});
+  // Detección de plataforma
+  const isIOS     = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isAndroid = /Android/i.test(navigator.userAgent);
 
-const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-const isAndroid = /Android/i.test(navigator.userAgent);
+  // URLs de tienda
+  const playStoreUrl = "https://play.google.com/store/apps/details?id=com.google.android.calendar";
+  const appStoreUrl  = "https://apps.apple.com/app/google-calendar/id909319292";
 
-// --- Botón: mostrar opciones (Web/App) ---
-const CAL_ID  = "72086005a3ac9a324642e6977fb8f296d531c3520b03c6cf342495ed215e0186@group.calendar.google.com";
-const WEB_URL = "https://calendar.google.com/calendar/u/0/r?cid=" + encodeURIComponent(CAL_ID);
-// Dynamic Link que abre la app si está instalada y, si no, va a la tienda
+  // Flujo web (fallback para desktop/otros): añadir el .ics publicado a Google Calendar por navegador
+  const gcalAddUrl  = "https://calendar.google.com/calendar/r?cid=" + encodeURIComponent(ICLOUD_HTTPS);
+  // Alternativa por ID nativo de Google (por si prefieres este flujo)
+  // const gcalByIdUrl = "https://calendar.google.com/calendar/u/0?cid=" + encodeURIComponent(GCAL_CALENDAR_ID);
 
-
-const choice    = document.getElementById("gcal-choice");
-const openWeb   = document.getElementById("gcal-open-web");
-const openApp   = document.getElementById("gcal-open-app");
-const cancelBtn = document.getElementById("gcal-cancel");
-
-function hideChoice(){ if (choice) choice.style.display = "none"; }
-function showChoice(){ if (choice) choice.style.display = "flex"; }
-
-document.getElementById("btn-gcal").addEventListener("click", function (event) {
-  event.preventDefault();
-  showChoice();
-});
-
-// Abrir en la web: URL que pide suscribirse al calendario
-if (openWeb){
-  openWeb.addEventListener("click", function(e){
+  // iCloud / Apple Calendar (botón verde) — abre Apple Calendar vía webcal
+  document.getElementById("btn-ios").addEventListener("click", (e)=>{
     e.preventDefault();
-    hideChoice();
-    // Abrimos la VERSIÓN WEB en nueva pestaña para minimizar cualquier deep link
-    try {
-      const w = window.open(WEB_URL, "_blank", "noopener");
-      if (!w) {
-        // Si el navegador bloquea popups, navega en la misma pestaña
-        window.location.href = WEB_URL;
-      }
-    } catch(_) {
-      window.location.href = WEB_URL;
-    }
+    const url = ICLOUD_WEBCAL;
+    if (window.self !== window.top && isIOS) window.top.location.href = url;
+    else window.location.href = url;
+
+    // Aviso por si el navegador bloquea el esquema
+    setTimeout(()=>{
+      alert("Si no se abrió el Calendario, copia este enlace y ábrelo en Safari:\n" + url);
+    }, 1600);
   });
-}
 
-// Abrir en la app: usa Dynamic Link para todos los casos
-if (openApp){
-  openApp.addEventListener("click", function(e){
+  // Google Calendar (botón azul) — intenta abrir la app y SOLO si no está, cae a la tienda
+  document.getElementById("btn-gcal").addEventListener("click", (e)=>{
     e.preventDefault();
-    hideChoice();
 
-    // Navega a una URL (considerando si estamos dentro de un iframe)
-    const go = (url) => {
-      if (window.self !== window.top) { window.top.location.href = url; }
-      else { window.location.href = url; }
-    };
-
-    if (isAndroid) {
-      // ANDROID: intenta abrir la app con intent + cid.
-      // Si no abre, cae primero a Web Add; último recurso: Play Store.
-      const PLAY = "https://play.google.com/store/apps/details?id=com.google.android.calendar";
+    if (isAndroid){
+      // ANDROID: intent hacia la app; fallback interno → Play Store
       const intentUrl =
-        'intent://calendar.google.com/calendar/r?cid=' + encodeURIComponent(CAL_ID) +
-        '#Intent;scheme=https;package=com.google.android.calendar;' +
-        'S.browser_fallback_url=' + encodeURIComponent(WEB_URL) + ';end';
+        "intent://calendar.google.com/calendar/r?cid=" + encodeURIComponent(ICLOUD_HTTPS) +
+        "#Intent;scheme=https;package=com.google.android.calendar;" +
+        "S.browser_fallback_url=" + encodeURIComponent(playStoreUrl) + ";end";
 
-      let finished = false;
-      const finish = () => {
-        if (finished) return;
-        finished = true;
-        clearTimeout(toWeb);
-        clearTimeout(toStore);
-      };
-
-      // Dispara intent
-      go(intentUrl);
-
-      // Si realmente se abre la app, la página pierde foco/visibilidad
-      const onHidden = () => finish();
-      window.addEventListener('pagehide', onHidden, { once:true });
-      document.addEventListener('visibilitychange', () => { if (document.hidden) finish(); }, { once:true });
-      window.addEventListener('blur', onHidden, { once:true });
-
-      // Fallback 1: si seguimos visibles, usar Web (ahí sí pregunta para agregar)
-      const toWeb = setTimeout(() => {
-        if (!finished && !document.hidden) go(WEB_URL);
-      }, 2200);
-
-      // Fallback 2 (último recurso): Play Store si tampoco abrió ni fue a Web
-      const toStore = setTimeout(() => {
-        if (!finished && !document.hidden) go(PLAY);
-      }, 4500);
+      // Navegar (si estamos embebidos en iframe, subir al top)
+      if (window.self !== window.top) window.top.location.href = intentUrl;
+      else window.location.href = intentUrl;
 
       return;
-    } else if (isIOS) {
-      // iOS: intenta abrir la app con el CID directamente. Fallback: App Store.
-      const appUrl1 = "comgooglecalendar://?cid=" + encodeURIComponent(CAL_ID);
-      const appUrl2 = "googlecalendar://?cid=" + encodeURIComponent(CAL_ID);
-      const appStore = "https://apps.apple.com/app/google-calendar/id909319292";
+    }
 
-      let left = false;
-      const cleanup = () => {
+    if (isIOS){
+      // iOS: doble intento de esquema; si no abre, App Store
+      const firstScheme  = "comgooglecalendar://";
+      const secondScheme = "googlecalendar://";
+      let didOpen = false;
+
+      // Si la app abre, la página pierde foco/visibilidad
+      const mark = () => { didOpen = true; cleanup(); };
+      const onVis = () => { if (document.hidden) mark(); };
+
+      function cleanup(){
         document.removeEventListener("visibilitychange", onVis, true);
-        window.removeEventListener("pagehide", onHide, true);
-        window.removeEventListener("blur", onBlur, true);
-      };
-      const onVis  = () => { if (document.hidden) { left = true; cleanup(); } };
-      const onHide = () => { left = true; cleanup(); };
-      const onBlur = () => { left = true; cleanup(); };
+        window.removeEventListener("pagehide", mark, true);
+        window.removeEventListener("blur", mark, true);
+        clearTimeout(t2); clearTimeout(t3);
+      }
 
       document.addEventListener("visibilitychange", onVis, true);
-      window.addEventListener("pagehide", onHide, true);
-      window.addEventListener("blur", onBlur, true);
+      window.addEventListener("pagehide", mark, true);
+      window.addEventListener("blur", mark, true);
 
-      go(appUrl1);
-      setTimeout(() => { if (!left) go(appUrl2); }, 600);
-      setTimeout(() => { if (!left) go(appStore); }, 1800);
+      // Dispara primer esquema
+      if (window.self !== window.top) window.top.location.href = firstScheme;
+      else window.location.href = firstScheme;
 
-    } else {
-      // Otros (desktop): abrir versión web como último recurso
-      go(WEB_URL);
+      // Segundo intento y, por último, App Store (solo si no abrió)
+      const t2 = setTimeout(()=>{
+        if (!didOpen) {
+          if (window.self !== window.top) window.top.location.href = secondScheme;
+          else window.location.href = secondScheme;
+        }
+      }, 500);
+
+      const t3 = setTimeout(()=>{
+        if (!didOpen) {
+          if (window.self !== window.top) window.top.location.href = appStoreUrl;
+          else window.location.href = appStoreUrl;
+        }
+      }, 1500);
+
+      return;
     }
-  });
-}
 
-// Botón de descarga Google Calendar
-const btnDownload = document.getElementById("btn-download");
-if (btnDownload){
-  btnDownload.addEventListener("click", function(e){
-    e.preventDefault();
-    const PLAY = "https://play.google.com/store/apps/details?id=com.google.android.calendar";
-    const APPSTORE = "https://apps.apple.com/app/google-calendar/id909319292";
-    if (isAndroid) {
-      window.location.href = PLAY;
-    } else if (isIOS) {
-      window.location.href = APPSTORE;
-    } else {
-      window.location.href = "https://calendar.google.com/"; // fallback
-    }
+    // Desktop / otros: usa flujo web (añadir por navegador)
+    if (window.self !== window.top) window.top.location.href = gcalAddUrl;
+    else window.location.href = gcalAddUrl;
   });
-}
-
-// Cerrar modal
-if (cancelBtn){
-  cancelBtn.addEventListener("click", function(){
-    hideChoice();
-  });
-}
-if (choice){
-  choice.addEventListener("click", function(e){
-    if (e.target === choice) hideChoice();
-  });
-}
 </script>
   <script>
     const openBtn = document.getElementById('open-contact-options');
