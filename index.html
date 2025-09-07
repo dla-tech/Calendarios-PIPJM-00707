@@ -161,9 +161,10 @@
 
   .btn{display:block; text-align:center; text-decoration:none; padding:14px 16px;
        border-radius:12px; font-weight:700; color:#fff}
-  .btn-g{background:#4285F4}
-  .btn-i{background:#34C759}
+  .btn-g{background:#34C759}
+  .btn-i{background:#4285F4}
   .btn-d{background:#0f172a}
+  .btn-y{background:#facc15; color:#000;}
 
   /* Live YouTube styles */
   .live-wrap { display:none; margin-top:10px; border-radius:12px; overflow:hidden; box-shadow:0 6px 16px rgba(0,0,0,.2); background:#000 }
@@ -240,9 +241,10 @@
       </iframe>
     </div>
 
-    <div class="grid cols-2">
+    <div class="grid cols-3">
       <a id="btn-gcal" class="btn btn-g" href="#" target="_self">🟢 Añadir en Google Calendar (Android/PC)</a>
       <a id="btn-ios" class="btn btn-i" href="#" target="_self">📱 Añadir en Apple Calendar (iPhone/Mac)</a>
+      <a id="btn-download" class="btn btn-y" href="#" target="_self">⬇️ Descargar Google Calendar</a>
     </div>
 
     <!-- Modal de elección para Google Calendar -->
@@ -786,6 +788,23 @@ if (openApp){
     } else {
       // Otros (desktop): abrir versión web como último recurso
       go(WEB_URL);
+    }
+  });
+}
+
+// Botón de descarga Google Calendar
+const btnDownload = document.getElementById("btn-download");
+if (btnDownload){
+  btnDownload.addEventListener("click", function(e){
+    e.preventDefault();
+    const PLAY = "https://play.google.com/store/apps/details?id=com.google.android.calendar";
+    const APPSTORE = "https://apps.apple.com/app/google-calendar/id909319292";
+    if (isAndroid) {
+      window.location.href = PLAY;
+    } else if (isIOS) {
+      window.location.href = APPSTORE;
+    } else {
+      window.location.href = "https://calendar.google.com/"; // fallback
     }
   });
 }
