@@ -652,33 +652,108 @@ END:VCALENDAR
       liveBox.style.display = 'none';
     });
 })();
-</script>
-<!-- ===== Botones de suscripción (iCloud/Google) ===== -->
 <script>
-document.getElementById("btn-ios").addEventListener("click", function(event) {
-  event.preventDefault();
-  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-  const url = "webcal://p158-caldav.icloud.com/published/2/MTYyMzg4NDUwMjAxNjIzOFc_RCw-iCOSeM_LMqkWZcQMuX9sTzZF-PyrU9d06Oy4V0VhxUSZVqCmqzUsygyCHgAllfl2DFW34WcFi8EvPD8";
+(function(){
+  const chooser   = document.getElementById('gcal-chooser');
+  const btnWeb    = document.getElementById('choose-web');
+  const btnApp    = document.getElementById('choose-app');
+  const btnClose  = document.getElementById('gcal-cancel');
+  if (!chooser || !btnWeb || !btnApp) return;
 
-  if (window.self !== window.top && isIOS) {
-    window.top.location.href = url;
-  } else {
-    window.location.href = url;
-  }
-  setTimeout(function() {
-    alert("Si no se abrió el calendario, copia y pega este enlace en Safari:\n" + url);
-  }, 2500);
-});
+  // Detectores (ya sueles tenerlos arriba, los recalculo por si acaso)
+  const isIOS     = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isAndroid = /Android/i.test(navigator.userAgent);
 
-const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-const isAndroid = /Android/i.test(navigator.userAgent);
+  // TU calendario
+  const GCAL_ID  = '72086005a3ac9a324642e6977fb8f296d531c3520b03c6cf342495ed215e0186@group.calendar.google.com';
 
-document.getElementById("btn-gcal").addEventListener("click", function (event) {
-  event.preventDefault();
-  const chooser = document.getElementById('gcal-chooser');
-  if (chooser) chooser.style.display = 'flex';
-  return;
-});
+  // Flujo Web (NO lo tocamos)
+  const WEB_ADD  = 'https://calendar.google.com/calendar/r?cid=' + encodeURIComponent(GCAL_ID);
+
+  // Tiendas
+  const PLAY     = 'https://play.google.com/store/apps/details?id=com.google.android.calendar';
+  const APPSTORE = 'https://apps.apple.com/app/google-calendar/id909319292';
+
+  function closeChooser(){ chooser.style.display = 'none'; }
+
+  // Botón "Web" (dejar igual)
+  btnWeb.addEventListener('click', (e)=>{
+    e.preventDefault();
+    closeChooser();
+    location.href = WEB_ADD;
+  });
+
+  // Botón "App" — iOS + Android
+  btnApp.addEventListener('click', (e)=>{
+    e.preventDefault();
+    closeChooser();
+
+    if (isAndroid) {
+      // ANDROID: abrir app con intent + cid; si no abre, Play Store
+      const intentUrl =
+        'intent://calendar/r?cid=' + encodeURIComponent(GCAL_ID) +
+        '#Intent;scheme=https;package=com.google.android.calendar;' +
+        'S.browser_fallback_url=' + encodeURIComponent(PLAY) + ';end';
+
+      let finished = false;
+      const finish = ()=>{ if (finished) return; finished = true; clearTimeout(toStore); };
+
+      // Dispara el intent
+      location.href = intentUrl;
+
+      // Si abre la app, la página pierde foco/visibilidad
+      const onHidden = ()=> finish();
+      window.addEventListener('pagehide', onHidden, { once:true });
+      document.addEventListener('visibilitychange', ()=>{ if (document.hidden) finish(); }, { once:true });
+      window.addEventListener('blur', onHidden, { once:true });
+
+      // Último recurso: si seguimos visibles, tienda
+      const toStore = setTimeout(()=>{
+        if (!finished && !document.hidden) location.href = PLAY;
+      }, 3000);
+
+      return;
+    }
+
+    if (isIOS) {
+      // iOS: abrir la APP con cid para forzar el diálogo dentro de la app (variante que te funcionaba)
+      // 1) Intento principal con action=TEMPLATE&cid
+      const schemePrimary = 'comgooglecalendar://?action=TEMPLATE&cid=' + encodeURIComponent(GCAL_ID);
+      // 2) Intento alterno solo con cid (algunos builds lo prefieren)
+      const schemeAlt     = 'comgooglecalendar://?cid=' + encodeURIComponent(GCAL_ID);
+
+      let opened = false;
+
+      const toAlt = setTimeout(()=>{
+        if (!opened) location.href = schemeAlt;
+      }, 900);
+
+      const toStore = setTimeout(()=>{
+        if (!opened) location.href = APPSTORE;
+      }, 1800);
+
+      const markOpened = ()=>{
+        opened = true;
+        clearTimeout(toAlt);
+        clearTimeout(toStore);
+      };
+
+      window.addEventListener('blur',            markOpened, { once:true });
+      window.addEventListener('pagehide',        markOpened, { once:true });
+      document.addEventListener('visibilitychange', ()=>{ if (document.hidden) markOpened(); }, { once:true });
+
+      location.href = schemePrimary;
+      return;
+    }
+
+    // Otros dispositivos → nada especial: usa Web Add
+    location.href = WEB_ADD;
+  });
+
+  // Abrir/cerrar modal (ya lo llamas desde tu #btn-gcal)
+  if (btnClose) btnClose.addEventListener('click', closeChooser);
+  window.addEventListener('click', (e)=>{ if (e.target === chooser) closeChooser(); });
+})();
 </script>
   <script>
   (function(){
