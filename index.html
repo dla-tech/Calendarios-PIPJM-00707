@@ -712,69 +712,76 @@ if (openWeb){
   });
 }
 
-// Abrir en la app: intenta app y SOLO si falla -> web y, en última instancia, tienda
+// Abrir en la app: intenta abrir la app; si no está instalada, cae a Web y, por último, a la tienda
 if (openApp){
   openApp.addEventListener("click", function(e){
     e.preventDefault();
     hideChoice();
 
-    // Navega (si estamos en iframe, sube al top)
     const go = (url) => {
       if (window.self !== window.top) { window.top.location.href = url; }
       else { window.location.href = url; }
     };
 
-    // Bandera de éxito (si la app abre, la página pierde visibilidad/foco)
+    // Detecta si la app abrió (la página pierde visibilidad/foco)
     let success = false;
     const markSuccess = () => { success = true; cleanup(); };
+    const onVisChange = () => { if (document.hidden) markSuccess(); };
 
-    const cleanup = () => {
-      document.removeEventListener("visibilitychange", onVis, true);
+    function cleanup(){
+      document.removeEventListener("visibilitychange", onVisChange, true);
       window.removeEventListener("pagehide", markSuccess, true);
       window.removeEventListener("blur", markSuccess, true);
       clearTimeout(t1); clearTimeout(t2);
-    };
+    }
 
-    const onVis = () => { if (document.hidden) markSuccess(); };
-    document.addEventListener("visibilitychange", onVis, true);
+    document.addEventListener("visibilitychange", onVisChange, true);
     window.addEventListener("pagehide", markSuccess, true);
-    window.addEventListener("blur", markSuccess, true);
+    window.addEventListener("blur",     markSuccess, true);
 
-    if (isAndroid) {
-      // 1) Intent a la app (con fallback a web en el propio intent)
+    if (isAndroid){
+      // 1) Intent a la app de Calendar con fallback interno a WEB_URL
       const PLAY = "https://play.google.com/store/apps/details?id=com.google.android.calendar";
       const intentUrl =
-        'intent://calendar.google.com/calendar/r?cid=' + encodeURIComponent(CAL_ID) +
-        '#Intent;scheme=https;package=com.google.android.calendar;' +
-        'S.browser_fallback_url=' + encodeURIComponent(WEB_URL) + ';end';
+        "intent://calendar.google.com/calendar/r?cid=" + encodeURIComponent(CAL_ID) +
+        "#Intent;scheme=https;package=com.google.android.calendar;" +
+        "S.browser_fallback_url=" + encodeURIComponent(WEB_URL) + ";end";
 
       go(intentUrl);
 
-      // 2) Si no hubo éxito, forzamos web; 3) último recurso: Play Store
-      const t1 = setTimeout(() => { if (!success && !document.hidden) go(WEB_URL); }, 1400);
-      const t2 = setTimeout(() => { if (!success && !document.hidden) go(PLAY);    }, 3000);
+      // 2) Si no se abrió la app ni cambió la visibilidad, intenta Web
+      var t1 = setTimeout(function(){
+        if (!success && !document.hidden) go(WEB_URL);
+      }, 1400);
+
+      // 3) Último recurso: Play Store
+      var t2 = setTimeout(function(){
+        if (!success && !document.hidden) go(PLAY);
+      }, 3000);
 
       return;
     }
 
-    if (isIOS) {
-      // 1) Intentos por esquema; 2) último recurso: App Store SOLO si la app no abrió
-      const app1 = "comgooglecalendar://?cid=" + encodeURIComponent(CAL_ID);
-      const app2 = "googlecalendar://?cid="   + encodeURIComponent(CAL_ID);
+    if (isIOS){
+      // iOS: intenta esquemas de la app; si no, App Store
+      const APP1 = "comgooglecalendar://?cid=" + encodeURIComponent(CAL_ID);
+      const APP2 = "googlecalendar://?cid="   + encodeURIComponent(CAL_ID);
       const STORE = "https://apps.apple.com/app/google-calendar/id909319292";
 
-      go(app1);
-      const t1 = setTimeout(() => { if (!success) go(app2);  }, 500);
-      const t2 = setTimeout(() => { if (!success) go(STORE); }, 1500);
+      go(APP1);
+      var t1 = setTimeout(function(){ if (!success) go(APP2);  }, 600);
+      var t2 = setTimeout(function(){ if (!success) go(STORE); }, 1600);
 
       return;
     }
 
-    // Otros (desktop): web
+    // Otros (desktop/u otros SO): abrir Web
     go(WEB_URL);
     cleanup();
   });
 }
+
+
 // Botón de descarga Google Calendar
 const btnDownload = document.getElementById("btn-download");
 if (btnDownload){
