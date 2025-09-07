@@ -672,19 +672,6 @@ document.getElementById("btn-ios").addEventListener("click", function(event) {
 const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 const isAndroid = /Android/i.test(navigator.userAgent);
 
-// Ajusta el texto del botón "Abrir en la app" según el dispositivo
-(function(){
-  const btn = document.getElementById("gcal-open-app");
-  if (!btn) return;
-  if (isAndroid) {
-    btn.textContent = "📱 Abrir en la app";
-  } else if (isIOS) {
-    btn.textContent = "📱 Agregar (iPhone abrirá la web)";
-  } else {
-    btn.textContent = "📱 Abrir en la app";
-  }
-})();
-
 // --- Botón: mostrar opciones (Web/App) ---
 const CAL_ID  = "72086005a3ac9a324642e6977fb8f296d531c3520b03c6cf342495ed215e0186@group.calendar.google.com";
 const WEB_URL = "https://calendar.google.com/calendar/u/0/r?cid=" + encodeURIComponent(CAL_ID);
@@ -742,13 +729,31 @@ if (openApp){
       }, 2000);
 
     } else if (isIOS) {
-      // En iPhone/iPad, la forma confiable de mostrar el diálogo "Agregar este calendario"
-      // es abrir la versión web con el cid. (La app no expone deep-link para suscripción).
+      const gcalIOS  = "comgooglecalendar://";
+      const altScheme= "googlecalendar://";
+      const appStore = "https://apps.apple.com/app/google-calendar/id909319292";
+
       if (window.self !== window.top) {
-        window.top.location.href = WEB_URL;
+        window.top.location.href = gcalIOS;
       } else {
-        window.location.href = WEB_URL;
+        window.location.href = gcalIOS;
       }
+
+      setTimeout(function () {
+        if (window.self !== window.top) {
+          window.top.location.href = altScheme;
+        } else {
+          window.location.href = altScheme;
+        }
+      }, 600);
+
+      setTimeout(function () {
+        if (window.self !== window.top) {
+          window.top.location.href = appStore;
+        } else {
+          window.location.href = appStore;
+        }
+      }, 2000);
     } else {
       // Escritorio u otros: abre la versión web como fallback
       if (window.self !== window.top) {
