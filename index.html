@@ -676,8 +676,8 @@ const isAndroid = /Android/i.test(navigator.userAgent);
 // --- Botón: mostrar opciones (Web/App) ---
 const CAL_ID  = "72086005a3ac9a324642e6977fb8f296d531c3520b03c6cf342495ed215e0186@group.calendar.google.com";
 const WEB_URL = "https://calendar.google.com/calendar/u/0/r?cid=" + encodeURIComponent(CAL_ID);
-// Bypass universal links so "Web" nunca abra la app
-const FORCE_WEB_URL = "https://www.google.com/url?source=web_app_bypass&amp;url=" + encodeURIComponent(WEB_URL);
+// Dynamic Link que abre la app si está instalada y, si no, va a la tienda
+const APP_LINK = "https://calendar.app.goo.gl/?link=" + encodeURIComponent(WEB_URL) + "&apn=com.google.android.calendar&ibi=com.google.calendar&isi=909319292";
 
 const choice    = document.getElementById("gcal-choice");
 const openWeb   = document.getElementById("gcal-open-web");
@@ -697,96 +697,51 @@ if (openWeb){
   openWeb.addEventListener("click", function(e){
     e.preventDefault();
     hideChoice();
-    if (window.self !== window.top) {
-      window.top.location.href = FORCE_WEB_URL;
-    } else {
-      window.location.href = FORCE_WEB_URL;
+    // Abrimos la VERSIÓN WEB en nueva pestaña para minimizar cualquier deep link
+    try {
+      const w = window.open(WEB_URL, "_blank", "noopener");
+      if (!w) {
+        // Si el navegador bloquea popups, navega en la misma pestaña
+        window.location.href = WEB_URL;
+      }
+    } catch(_) {
+      window.location.href = WEB_URL;
     }
   });
 }
 
-// Abrir en la app: conserva el comportamiento actual (Android/iOS)
+// Abrir en la app: usa Dynamic Link para todos los casos
 if (openApp){
   openApp.addEventListener("click", function(e){
     e.preventDefault();
     hideChoice();
-    // Abre la web en una pestaña nueva (para mostrar la suscripción web) y luego fuerza la app
-    try { window.open(FORCE_WEB_URL, '_blank', 'noopener'); } catch(e) {}
 
-    if (isAndroid) {
-      const intentUrl = "intent://calendar.google.com/calendar/u/0?cid=" +
-        encodeURIComponent(CAL_ID) +
-        "#Intent;scheme=https;package=com.google.android.calendar;end";
-      const playStore = "https://play.google.com/store/apps/details?id=com.google.android.calendar";
-
-      if (window.self !== window.top) {
-        window.top.location.href = intentUrl;
-      } else {
-        window.location.href = intentUrl;
-      }
-
-      setTimeout(function () {
-        if (window.self !== window.top) {
-          window.top.location.href = playStore;
-        } else {
-          window.location.href = playStore;
-        }
-      }, 2000);
-
-    } else if (isIOS) {
-      // iOS: intenta abrir la APP; solo redirige a App Store si NO está instalada.
-      const appStore = "https://apps.apple.com/app/google-calendar/id909319292";
-
-      let didHide = false; // se pondrá true si Safari pasa a background (app abierta)
-      let tAlt = null, tStore = null, tCleanup = null;
-
-      const cancelAll = () => {
-        if (tAlt)   clearTimeout(tAlt);
-        if (tStore) clearTimeout(tStore);
-        if (tCleanup) clearTimeout(tCleanup);
-        document.removeEventListener('visibilitychange', onVis, true);
-        window.removeEventListener('pagehide', onHide, true);
-        window.removeEventListener('blur', onBlur, true);
-      };
-      const onVis = () => { if (document.hidden) { didHide = true; cancelAll(); } };
-      const onHide = () => { didHide = true; cancelAll(); };
-      const onBlur = () => { didHide = true; cancelAll(); };
-
-      document.addEventListener('visibilitychange', onVis, true);
-      window.addEventListener('pagehide', onHide, true);
-      window.addEventListener('blur', onBlur, true);
-
-      const tryOpen = (url) => {
-        if (window.self !== window.top) {
-          window.top.location.href = url;
-        } else {
-          window.location.href = url;
-        }
-      };
-
-      // 1) Intenta abrir la app (esquema principal)
-      tryOpen("comgooglecalendar://");
-
-      // 2) Si en ~700ms no cambió la visibilidad, intenta esquema alternativo
-      tAlt = setTimeout(() => {
-        if (!didHide) tryOpen("googlecalendar://");
-      }, 700);
-
-      // 3) Si después de ~2000ms seguimos en la página, asume que no hay app => App Store
-      tStore = setTimeout(() => {
-        if (!didHide) tryOpen(appStore);
-      }, 2000);
-
-      // Limpieza de seguridad a los 8s por si el usuario vuelve desde la app
-      tCleanup = setTimeout(cancelAll, 8000);
-    } else {
-      // Escritorio u otros: abre la versión web como fallback
-      if (window.self !== window.top) {
-        window.top.location.href = FORCE_WEB_URL;
-      } else {
-        window.location.href = FORCE_WEB_URL;
-      }
+    // 1) Llevamos al usuario por la web (ahí aparece el prompt de suscripción)
+    try {
+      window.open(WEB_URL, "_blank", "noopener");
+    } catch(_) {
+      // no pasa nada si falla abrir en nueva pestaña
     }
+
+    // 2) Inmediatamente solicitamos abrir la APP con Dynamic Link
+    //    - Si la app está instalada, se abrirá la app.
+    //    - Si NO está instalada, el DL envía a App Store / Play Store.
+    const go = (url) => {
+      if (window.self !== window.top) {
+        window.top.location.href = url;
+      } else {
+        window.location.href = url;
+      }
+    };
+    go(APP_LINK);
+
+    // 3) Fallback de seguridad: si por alguna razón el DL falla, regresa a la web
+    setTimeout(() => {
+      // Si seguimos en la misma pestaña, reenvía a la web como respaldo
+      if (!document.hidden) {
+        go(WEB_URL);
+      }
+    }, 4000);
   });
 }
 
