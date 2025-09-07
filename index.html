@@ -716,30 +716,20 @@ if (openApp){
     e.preventDefault();
     hideChoice();
 
-    // 1) Abre la web en NUEVA pestaña (no redirige a app desde aquí)
-    try {
-      const w = window.open(WEB_URL, "_blank", "noopener");
-      if (!w) { window.location.href = WEB_URL; }
-    } catch(_) {
-      window.location.href = WEB_URL;
-    }
-
-    // 2) Fuerza abrir la APP de inmediato (según plataforma) y,
-    //    si no existe, envía a la tienda correspondiente.
+    // Navega a una URL (considerando si estamos dentro de un iframe)
     const go = (url) => {
       if (window.self !== window.top) { window.top.location.href = url; }
       else { window.location.href = url; }
     };
 
     if (isAndroid) {
-      // Intent directo a la app de Google Calendar con el CID
+      // Android: Intent directo a la app con el calendario (cid). Fallback: Play Store.
       const intentUrl =
         "intent://calendar.google.com/calendar/u/0/r?cid=" +
         encodeURIComponent(CAL_ID) +
         "#Intent;scheme=https;package=com.google.android.calendar;end";
       go(intentUrl);
 
-      // Fallback a Play Store si la app no se abrió (sigue visible esta pestaña)
       setTimeout(() => {
         if (!document.hidden) {
           go("https://play.google.com/store/apps/details?id=com.google.android.calendar");
@@ -747,10 +737,9 @@ if (openApp){
       }, 1500);
 
     } else if (isIOS) {
-      // iOS: intenta abrir la app (dos esquemas posibles). Si no, App Store.
-      // Nota: algunos iOS ignoran parámetros en el esquema; probamos neutro.
-      const appUrl1 = "comgooglecalendar://";
-      const appUrl2 = "googlecalendar://";
+      // iOS: intenta abrir la app con el CID directamente. Fallback: App Store.
+      const appUrl1 = "comgooglecalendar://?cid=" + encodeURIComponent(CAL_ID);
+      const appUrl2 = "googlecalendar://?cid=" + encodeURIComponent(CAL_ID);
       const appStore = "https://apps.apple.com/app/google-calendar/id909319292";
 
       let left = false;
@@ -767,18 +756,13 @@ if (openApp){
       window.addEventListener("pagehide", onHide, true);
       window.addEventListener("blur", onBlur, true);
 
-      // Fuerza la app enseguida
       go(appUrl1);
       setTimeout(() => { if (!left) go(appUrl2); }, 600);
-
-      // Fallback a App Store si no se abrió
-      setTimeout(() => {
-        if (!left) go(appStore);
-      }, 1800);
+      setTimeout(() => { if (!left) go(appStore); }, 1800);
 
     } else {
-      // Otros (desktop): deja al usuario en la web (ya se abrió en nueva pestaña)
-      // No hacemos nada más.
+      // Otros (desktop): abrir versión web como último recurso
+      go(WEB_URL);
     }
   });
 }
