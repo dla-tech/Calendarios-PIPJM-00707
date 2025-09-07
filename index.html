@@ -735,7 +735,6 @@ if (openApp){
           go("https://play.google.com/store/apps/details?id=com.google.android.calendar");
         }
       }, 1500);
-
     } else if (isIOS) {
       // iOS: intenta abrir la app con el CID directamente. Fallback: App Store.
       const appUrl1 = "comgooglecalendar://?cid=" + encodeURIComponent(CAL_ID);
