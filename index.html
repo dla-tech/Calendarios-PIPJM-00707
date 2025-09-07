@@ -716,32 +716,70 @@ if (openApp){
     e.preventDefault();
     hideChoice();
 
-    // 1) Llevamos al usuario por la web (ahí aparece el prompt de suscripción)
+    // 1) Abre la web en NUEVA pestaña (no redirige a app desde aquí)
     try {
-      window.open(WEB_URL, "_blank", "noopener");
+      const w = window.open(WEB_URL, "_blank", "noopener");
+      if (!w) { window.location.href = WEB_URL; }
     } catch(_) {
-      // no pasa nada si falla abrir en nueva pestaña
+      window.location.href = WEB_URL;
     }
 
-    // 2) Inmediatamente solicitamos abrir la APP con Dynamic Link
-    //    - Si la app está instalada, se abrirá la app.
-    //    - Si NO está instalada, el DL envía a App Store / Play Store.
+    // 2) Fuerza abrir la APP de inmediato (según plataforma) y,
+    //    si no existe, envía a la tienda correspondiente.
     const go = (url) => {
-      if (window.self !== window.top) {
-        window.top.location.href = url;
-      } else {
-        window.location.href = url;
-      }
+      if (window.self !== window.top) { window.top.location.href = url; }
+      else { window.location.href = url; }
     };
-    go(APP_LINK);
 
-    // 3) Fallback de seguridad: si por alguna razón el DL falla, regresa a la web
-    setTimeout(() => {
-      // Si seguimos en la misma pestaña, reenvía a la web como respaldo
-      if (!document.hidden) {
-        go(WEB_URL);
-      }
-    }, 4000);
+    if (isAndroid) {
+      // Intent directo a la app de Google Calendar con el CID
+      const intentUrl =
+        "intent://calendar.google.com/calendar/u/0/r?cid=" +
+        encodeURIComponent(CAL_ID) +
+        "#Intent;scheme=https;package=com.google.android.calendar;end";
+      go(intentUrl);
+
+      // Fallback a Play Store si la app no se abrió (sigue visible esta pestaña)
+      setTimeout(() => {
+        if (!document.hidden) {
+          go("https://play.google.com/store/apps/details?id=com.google.android.calendar");
+        }
+      }, 1500);
+
+    } else if (isIOS) {
+      // iOS: intenta abrir la app (dos esquemas posibles). Si no, App Store.
+      // Nota: algunos iOS ignoran parámetros en el esquema; probamos neutro.
+      const appUrl1 = "comgooglecalendar://";
+      const appUrl2 = "googlecalendar://";
+      const appStore = "https://apps.apple.com/app/google-calendar/id909319292";
+
+      let left = false;
+      const cleanup = () => {
+        document.removeEventListener("visibilitychange", onVis, true);
+        window.removeEventListener("pagehide", onHide, true);
+        window.removeEventListener("blur", onBlur, true);
+      };
+      const onVis  = () => { if (document.hidden) { left = true; cleanup(); } };
+      const onHide = () => { left = true; cleanup(); };
+      const onBlur = () => { left = true; cleanup(); };
+
+      document.addEventListener("visibilitychange", onVis, true);
+      window.addEventListener("pagehide", onHide, true);
+      window.addEventListener("blur", onBlur, true);
+
+      // Fuerza la app enseguida
+      go(appUrl1);
+      setTimeout(() => { if (!left) go(appUrl2); }, 600);
+
+      // Fallback a App Store si no se abrió
+      setTimeout(() => {
+        if (!left) go(appStore);
+      }, 1800);
+
+    } else {
+      // Otros (desktop): deja al usuario en la web (ya se abrió en nueva pestaña)
+      // No hacemos nada más.
+    }
   });
 }
 
