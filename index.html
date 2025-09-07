@@ -723,45 +723,17 @@ if (openApp){
     };
 
     if (isAndroid) {
-      // ANDROID: abrir la app si está instalada; solo ir a Play Store si NO se abrió.
+      // ANDROID: abrir directamente la app con Intent.
+      // Solo irá a Play Store si la app NO está instalada, gracias al fallback embebido.
       const playStore = "https://play.google.com/store/apps/details?id=com.google.android.calendar";
-
-      // 1) Deep link alterno (algunas ROMs/launchers lo registran)
-      const deepLink = "googlecalendar://?cid=" + encodeURIComponent(CAL_ID);
-
-      // 2) Intent estándar con package (Chrome suele abrir la app si está instalada)
       const intentUrl =
-        "intent://calendar.google.com/calendar/r?cid=" +
+        "intent://calendar.google.com/calendar/u/0/r?cid=" +
         encodeURIComponent(CAL_ID) +
-        "#Intent;scheme=https;package=com.google.android.calendar;action=android.intent.action.VIEW;end";
+        "#Intent;scheme=https;package=com.google.android.calendar;" +
+        "S.browser_fallback_url=" + encodeURIComponent(playStore) + ";end";
 
-      // Detectar si nos fuimos a la app (la página pierde visibilidad)
-      let left = false;
-      const cleanup = () => {
-        document.removeEventListener("visibilitychange", onVis, true);
-        window.removeEventListener("pagehide", onHide, true);
-        window.removeEventListener("blur", onBlur, true);
-      };
-      const onVis  = () => { if (document.hidden) { left = true; cleanup(); } };
-      const onHide = () => { left = true; cleanup(); };
-      const onBlur = () => { left = true; cleanup(); };
-
-      document.addEventListener("visibilitychange", onVis, true);
-      window.addEventListener("pagehide", onHide, true);
-      window.addEventListener("blur", onBlur, true);
-
-      // Helper para navegar (considerando si estamos embebidos en iframe)
-      const go = (url) => {
-        if (window.self !== window.top) { window.top.location.href = url; }
-        else { window.location.href = url; }
-      };
-
-      // Secuencia: deep link -> intent -> Play Store si seguimos "presentes"
-      go(deepLink);
-      setTimeout(() => { if (!left) go(intentUrl); }, 450);
-      setTimeout(() => { if (!left) go(playStore); }, 2200);
-
-      return; // importante: no continuar a iOS/otros
+      // Lanza la app (o fallback automático a Play Store si no está instalada)
+      go(intentUrl);
     } else if (isIOS) {
       // iOS: intenta abrir la app con el CID directamente. Fallback: App Store.
       const appUrl1 = "comgooglecalendar://?cid=" + encodeURIComponent(CAL_ID);
