@@ -164,7 +164,6 @@
   .btn-g{background:#34C759}
   .btn-i{background:#4285F4}
   .btn-d{background:#0f172a}
-  .btn-y{background:#facc15; color:#000;}
 
   /* Live YouTube styles */
   .live-wrap { display:none; margin-top:10px; border-radius:12px; overflow:hidden; box-shadow:0 6px 16px rgba(0,0,0,.2); background:#000 }
@@ -241,10 +240,9 @@
       </iframe>
     </div>
 
-    <div class="grid cols-3">
+    <div class="grid cols-2">
       <a id="btn-gcal" class="btn btn-g" href="#" target="_self">🟢 Añadir en Google Calendar (Android/PC)</a>
       <a id="btn-ios" class="btn btn-i" href="#" target="_self">📱 Añadir en Apple Calendar (iPhone/Mac)</a>
-      <a id="btn-download" class="btn btn-y" href="#" target="_self">⬇️ Descargar Google Calendar</a>
     </div>
 
     <!-- Modal de elección para Google Calendar -->
@@ -725,23 +723,21 @@ if (openApp){
     };
 
     if (isAndroid) {
-      // ANDROID: intenta abrir la app con intent + cid.
-      // Si no abre, cae primero a Web Add; último recurso: Play Store.
+      // ANDROID: intenta abrir la app; si no está instalada, ir DIRECTO a Play Store.
       const PLAY = "https://play.google.com/store/apps/details?id=com.google.android.calendar";
       const intentUrl =
         'intent://calendar.google.com/calendar/r?cid=' + encodeURIComponent(CAL_ID) +
         '#Intent;scheme=https;package=com.google.android.calendar;' +
-        'S.browser_fallback_url=' + encodeURIComponent(WEB_URL) + ';end';
+        'S.browser_fallback_url=' + encodeURIComponent(PLAY) + ';end';
 
       let finished = false;
       const finish = () => {
         if (finished) return;
         finished = true;
-        clearTimeout(toWeb);
         clearTimeout(toStore);
       };
 
-      // Dispara intent
+      // Dispara intent hacia la APP
       go(intentUrl);
 
       // Si realmente se abre la app, la página pierde foco/visibilidad
@@ -750,15 +746,10 @@ if (openApp){
       document.addEventListener('visibilitychange', () => { if (document.hidden) finish(); }, { once:true });
       window.addEventListener('blur', onHidden, { once:true });
 
-      // Fallback 1: si seguimos visibles, usar Web (ahí sí pregunta para agregar)
-      const toWeb = setTimeout(() => {
-        if (!finished && !document.hidden) go(WEB_URL);
-      }, 2200);
-
-      // Fallback 2 (último recurso): Play Store si tampoco abrió ni fue a Web
+      // Último recurso: si seguimos visibles, llevar a Play Store (app no instalada)
       const toStore = setTimeout(() => {
         if (!finished && !document.hidden) go(PLAY);
-      }, 4500);
+      }, 3000);
 
       return;
     } else if (isIOS) {
@@ -792,22 +783,6 @@ if (openApp){
   });
 }
 
-// Botón de descarga Google Calendar
-const btnDownload = document.getElementById("btn-download");
-if (btnDownload){
-  btnDownload.addEventListener("click", function(e){
-    e.preventDefault();
-    const PLAY = "https://play.google.com/store/apps/details?id=com.google.android.calendar";
-    const APPSTORE = "https://apps.apple.com/app/google-calendar/id909319292";
-    if (isAndroid) {
-      window.location.href = PLAY;
-    } else if (isIOS) {
-      window.location.href = APPSTORE;
-    } else {
-      window.location.href = "https://calendar.google.com/"; // fallback
-    }
-  });
-}
 
 // Cerrar modal
 if (cancelBtn){
