@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="es">
 <head>
 <script>document.documentElement.classList.add('loading');</script>
@@ -724,18 +724,17 @@ if (openApp){
 
     if (isAndroid) {
       // ANDROID: intenta abrir la app con intent + cid.
-      // Si no abre, cae primero a Web Add; último recurso: Play Store.
+      // Si no abre, cae directamente a Play Store.
       const PLAY = "https://play.google.com/store/apps/details?id=com.google.android.calendar";
       const intentUrl =
         'intent://calendar.google.com/calendar/r?cid=' + encodeURIComponent(CAL_ID) +
         '#Intent;scheme=https;package=com.google.android.calendar;' +
-        'S.browser_fallback_url=' + encodeURIComponent(WEB_URL) + ';end';
+        'S.browser_fallback_url=' + encodeURIComponent(PLAY) + ';end';
 
       let finished = false;
       const finish = () => {
         if (finished) return;
         finished = true;
-        clearTimeout(toWeb);
         clearTimeout(toStore);
       };
 
@@ -748,12 +747,7 @@ if (openApp){
       document.addEventListener('visibilitychange', () => { if (document.hidden) finish(); }, { once:true });
       window.addEventListener('blur', onHidden, { once:true });
 
-      // Fallback 1: si seguimos visibles, usar Web (ahí sí pregunta para agregar)
-      const toWeb = setTimeout(() => {
-        if (!finished && !document.hidden) go(WEB_URL);
-      }, 2200);
-
-      // Fallback 2 (último recurso): Play Store si tampoco abrió ni fue a Web
+      // Fallback: Play Store si tampoco abrió
       const toStore = setTimeout(() => {
         if (!finished && !document.hidden) go(PLAY);
       }, 4500);
