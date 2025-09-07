@@ -724,16 +724,24 @@ if (openApp){
 
     if (isAndroid) {
       // ANDROID: abrir directamente la app con Intent.
-      // Solo irá a Play Store si la app NO está instalada, gracias al fallback embebido.
+      // Solo irá a Play Store si la app NO está instalada.
       const playStore = "https://play.google.com/store/apps/details?id=com.google.android.calendar";
       const intentUrl =
         "intent://calendar.google.com/calendar/u/0/r?cid=" +
         encodeURIComponent(CAL_ID) +
-        "#Intent;scheme=https;package=com.google.android.calendar;" +
-        "S.browser_fallback_url=" + encodeURIComponent(playStore) + ";end";
+        "#Intent;scheme=https;package=com.google.android.calendar;S.browser_fallback_url=" +
+        encodeURIComponent(playStore) + ";end";
 
-      // Lanza la app (o fallback automático a Play Store si no está instalada)
+      // Intenta abrir la app
       go(intentUrl);
+
+      // Fallback extra: si en ~1.5s la página no se oculta (no abrió la app),
+      // mandamos a Play Store.
+      setTimeout(() => {
+        if (!document.hidden) {
+          go(playStore);
+        }
+      }, 1500);
     } else if (isIOS) {
       // iOS: intenta abrir la app con el CID directamente. Fallback: App Store.
       const appUrl1 = "comgooglecalendar://?cid=" + encodeURIComponent(CAL_ID);
