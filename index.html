@@ -1,1 +1,81 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Cartelera semanal PIPJM</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
+<!-- Config externo editable -->
+<script src="./config.js"></script>
+
+<style>
+  :root{
+    --bg:#0b1421; --card:#0f1b2c; --text:#e6eefc; --muted:#93a4bf; --accent:#16a34a; --warn:#ef4444;
+    --fs:22px; --fs-big:64px; --fs-h1:42px; --fs-h2:28px;
+    --shadow: 0 20px 50px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font:500 var(--fs)/1.35 system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    color:var(--text); background: var(--bg);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .wrap{width:min(1200px,96vw); margin:auto; padding:18px}
+  .row{display:grid; grid-template-columns: 1.1fr .9fr; gap:18px}
+  .card{background:var(--card); border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:18px; box-shadow:var(--shadow)}
+  h1{margin:.1em 0 .2em; font-size:var(--fs-h1); letter-spacing:.3px}
+  h2{margin:.1em 0 .5em; font-size:var(--fs-h2); color:#cfe0ff}
+  .muted{color:var(--muted)}
+  .big{font-size:var(--fs-big); font-weight:800; letter-spacing:.5px}
+  .time{font-size:calc(var(--fs) + 6px); font-weight:800}
+  .tag{display:inline-block; padding:4px 10px; border-radius:999px; background:#122742; color:#cfe0ff; font-weight:800; font-size:16px}
+  .grid{display:grid; gap:10px}
+  .ev{border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:12px}
+  .row2{display:grid; grid-template-columns: 1fr auto; gap:12px; align-items:center}
+  .qr{width:260px; height:260px; border-radius:12px; background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden}
+  .qr img{max-width:100%; max-height:100%}
+  .clock{display:flex; gap:12px; align-items:baseline}
+  .dot{width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:8px}
+  .ok{background:var(--accent)} .bad{background:var(--warn)}
+  .footer{margin-top:10px; font-size:16px; color:#9fb3d4}
+  .center{display:flex; align-items:center; justify-content:center}
+  .marquee{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .banner{display:flex; align-items:center; justify-content:center; height:62vh}
+  .banner img{max-width:100%; max-height:100%; border-radius:14px; box-shadow:var(--shadow)}
+  .titleCenter{font-weight:900; text-align:center; font-size: calc(var(--fs-h1) + 6px)}
+  .subCenter{color:var(--muted); text-align:center}
+  .status{position:fixed; left:12px; bottom:10px; font:600 12px system-ui; color:#9fb3d4}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="row">
+    <!-- Columna izquierda -->
+    <div class="card" id="leftCard">
+      <div class="clock">
+        <span id="liveDot" class="dot ok"></span>
+        <div id="now" class="big">--:--</div>
+        <div id="date" class="muted" style="font-size:calc(var(--fs) + 2px)"></div>
+      </div>
+
+      <div id="stage">
+        <!-- Aquí se pinta: portada, texto, o evento actual -->
+      </div>
+
+      <div class="footer" id="footNote">Actualiza solo — semana actual. Cambia tarjeta cada 12s.</div>
+    </div>
+
+    <!-- Columna derecha: listado del día -->
+    <div class="card">
+      <h2 id="listTitle">Eventos del día</h2>
+      <div id="list" class="grid"></div>
+    </div>
+  </div>
+</div>
+
+<div class="status" id="status">ICS OK</div>
+
+<script src="./main.js"></script>
+</body>
+</html>
