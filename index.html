@@ -4,7 +4,6 @@
 <meta charset="utf-8" />
 <title>Cartelera semanal PIPJM</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<!-- Config editable (colores, textos, banners, horarios, etc.) -->
 <script src="./config/config.js"></script>
 <style>
   :root{
@@ -40,6 +39,7 @@
     background:var(--card); border:1px solid rgba(255,255,255,.08);
     border-radius:16px; padding:18px; box-shadow:var(--shadow);
     display:flex; flex-direction:column; justify-content:center; overflow:hidden;
+    min-height:56vh;
   }
   .card.centerpiece{transform:scale(1.02)}
   .time{font-weight:900; font-size:calc(var(--fs) + 6px); margin-bottom:6px}
@@ -51,9 +51,6 @@
   .center{display:flex; align-items:center; justify-content:center; height:100%}
   .banner img{max-width:100%; max-height:58vh; border-radius:14px; box-shadow:var(--shadow)}
   .muted{color:var(--muted)}
-
-  /* Etiquetas de contexto (invisibles para el usuario, pero útiles para depuración) */
-  .tagLbl{display:none;font-weight:700;color:var(--muted);margin-bottom:6px}
 
   /* Sleep overlay */
   #sleepOverlay{
@@ -96,17 +93,16 @@
 <script>
 /* ========= Helpers ========= */
 const C = window.CARTELERA_CONFIG || {};
-// Aplicar tema desde config
 (function applyTheme(){
   const r = document.documentElement;
   const T = C.theme || {};
-  if (T.bg)    r.style.setProperty('--bg', T.bg);
-  if (T.card)  r.style.setProperty('--card', T.card);
-  if (T.text)  r.style.setProperty('--text', T.text);
-  if (T.muted) r.style.setProperty('--muted', T.muted);
-  if (T.accent)r.style.setProperty('--accent',T.accent);
-  if (T.warn)  r.style.setProperty('--warn',  T.warn);
-  if (T.shadow)r.style.setProperty('--shadow',T.shadow);
+  if (T.bg)       r.style.setProperty('--bg', T.bg);
+  if (T.card)     r.style.setProperty('--card', T.card);
+  if (T.text)     r.style.setProperty('--text', T.text);
+  if (T.muted)    r.style.setProperty('--muted', T.muted);
+  if (T.accent)   r.style.setProperty('--accent',T.accent);
+  if (T.warn)     r.style.setProperty('--warn',  T.warn);
+  if (T.shadow)   r.style.setProperty('--shadow',T.shadow);
   if (T.fontSize) r.style.setProperty('--fs', T.fontSize+'px');
   if (T.h1)       r.style.setProperty('--fs-h1', T.h1+'px');
   if (T.h2)       r.style.setProperty('--fs-h2', T.h2+'px');
@@ -125,23 +121,19 @@ const fmtTime = new Intl.DateTimeFormat('es-PR',{hour:'2-digit',minute:'2-digit'
 const hm = d => fmtTime.format(toTZ(d)).toLowerCase().replace(/\s/g,'').replace('a. m.','am').replace('p. m.','pm');
 const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 
-// Rango visible de la semana (domingo a sábado)
 function weekFrom(date){
   const pr = toTZ(date);
   const sun = startOfDay(addDays(pr, -pr.getDay()));
   const days = [...Array(7)].map((_,i)=> addDays(sun,i));
   return {sun, days};
 }
-
 function qrFor(url){
   if(!url) return '';
   const size = C.qrSize || 220;
   return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(url)}`;
 }
 function firstUrl(...vals){
-  for(const v of vals){
-    if (v && /^https?:\/\//i.test(v)) return v;
-  }
+  for(const v of vals){ if (v && /^https?:\/\//i.test(v)) return v; }
   return '';
 }
 function isTemple(text){
@@ -181,12 +173,11 @@ function parseICS(txt){
         const [_,Y,M,D,h,m,s,Z] = dt;
         if (/TZID=AMERICA\/PUERTO_RICO/.test(params)) return new Date(Date.UTC(+Y,+M-1,+D,+h+4,+m,+s));
         if (Z) return new Date(Date.UTC(+Y,+M-1,+D,+h,+m,+s));
-        // si no hay TZ, asumimos local PR
         return new Date(Date.UTC(+Y,+M-1,+D,+h+4,+m,+s));
       }
       if (dOnly){
         const [_,Y,M,D] = dOnly;
-        return new Date(Date.UTC(+Y,+M-1,+D,4,0,0)); // 00:00 PR
+        return new Date(Date.UTC(+Y,+M-1,+D,4,0,0));
       }
       return null;
     }
@@ -194,14 +185,12 @@ function parseICS(txt){
     const start = parseVal(val);
     if(!start) continue;
 
-    // DTEND (opcional)
     let end = null;
     const dtEnd = b.match(/^DTEND[^:]*:([^\n]+)$/mi);
     if (dtEnd) end = parseVal(dtEnd[1].trim());
 
     out.push({
-      start,
-      end,
+      start, end,
       summary:  get('SUMMARY'),
       location: get('LOCATION'),
       url:      get('URL'),
@@ -210,16 +199,12 @@ function parseICS(txt){
   }
   return out.sort((a,b)=>a.start-b.start);
 }
-
 function groupByWeek(events, baseDate){
   const {sun, days} = weekFrom(baseDate);
   const map = new Map(days.map(d=>[startOfDay(d).getTime(), []]));
   for(const ev of events){
     for(const d of days){
-      if (sameDay(ev.start, d)){
-        map.get(startOfDay(d).getTime()).push(ev);
-        break;
-      }
+      if (sameDay(ev.start, d)){ map.get(startOfDay(d).getTime()).push(ev); break; }
     }
   }
   for(const [k, list] of map){ list.sort((a,b)=>a.start-b.start); }
@@ -230,10 +215,9 @@ function groupByWeek(events, baseDate){
 let state = {
   allEvents: [],
   week: null,
-  idx: 0,        // índice día “centro” (0..6)
-  evIdx: 0,      // índice del evento dentro del día (si hay varios)
-  seq: [],       // secuencia: intro, 7 días, outro
-  seqIdx: 0,     // índice dentro de la secuencia
+  seq: [],       // intro, 7 días, outro
+  seqIdx: 0,
+  evIdx: 0,      // índice del evento dentro del día
   timer: null
 };
 
@@ -249,38 +233,30 @@ function buildSequence(){
 }
 
 function dateLong(d){ return cap(fmtDate.format(toTZ(d))); }
-
 function renderHeader(){
   const s = state.week.days[0], e = state.week.days[6];
   document.getElementById('headerTitle').textContent = C.labels?.headerTitle || 'Calendario de la semana';
   document.getElementById('headerRange').textContent = `${dateLong(s)} — ${dateLong(e)}`;
 }
-
 function renderClock(){
   const now = new Date();
   document.getElementById('now').textContent = fmtTime.format(toTZ(now));
   document.getElementById('today').textContent = dateLong(now);
 }
-
 function toDateFromHm(baseDate, hmStr){
   if(!hmStr) return null;
   const [H,M] = hmStr.split(':').map(n=>parseInt(n,10));
   const d = startOfDay(baseDate);
-  // Puerto Rico UTC-4 ⇒ ajustar a UTC
-  d.setHours(H-4, M||0, 0, 0);
+  d.setHours(H-4, M||0, 0, 0); // PR≈UTC-4
   return d;
 }
-
-// Construye “ítems” para un día: o bien vienen del ICS, o defaults del config
 function dayItems(day){
   const key = startOfDay(day).getTime();
   const list = state.week.map.get(key) || [];
   if (list.length) return list;
-
   const weekday = toTZ(day).getDay(); // 0..6
   const defs = (C.defaultsByWeekday && C.defaultsByWeekday[weekday]) || [];
   if (!defs.length) return [];
-
   return defs.map(d => ({
     start: d.start ? toDateFromHm(day,d.start) : day,
     end:   d.end   ? toDateFromHm(day,d.end)   : null,
@@ -290,7 +266,6 @@ function dayItems(day){
     desc: d.desc || ''
   }));
 }
-
 function renderBanner(holder, url) {
   holder.innerHTML = `<div class="center banner"><img src="${url}" alt="Banner"></div>`;
 }
@@ -302,7 +277,6 @@ function renderText(holder, text) {
       <div class="muted">${dateLong(s)} — ${dateLong(e)}</div>
     </div>`;
 }
-
 function renderEventCard(holder, ev){
   if (!ev){
     holder.innerHTML = `
@@ -330,38 +304,28 @@ function renderEventCard(holder, ev){
     <div class="extra">${(extra || '').trim()}${pre}${man}</div>
     ${showQr ? `<div class="qr"><img src="${qrFor(pinUrl)}" alt="QR"></div>` : ''}`;
 }
-
 function renderThree(dayCenter){
-  // día centro y vecinos
   const {days} = state.week;
-  const idx = days.findIndex(d => sameDay(d, dayCenter));
-  const leftD  = days[(idx-1+7)%7];
-  const rightD = days[(idx+1)%7];
+  const i = days.findIndex(d => sameDay(d, dayCenter));
+  const leftD  = days[(i-1+7)%7];
+  const rightD = days[(i+1)%7];
 
-  // Evento “actual” del centro (rota si hay varios)
   const centerItems = dayItems(dayCenter);
   const total = centerItems.length || 1;
   const evC = centerItems.length ? centerItems[state.evIdx % total] : null;
 
-  // Vecinos: primer evento (si existiera)
   const leftItems  = dayItems(leftD);
   const rightItems = dayItems(rightD);
   const evL = leftItems[0] || null;
   const evR = rightItems[0] || null;
 
-  // Pintar cards
   renderEventCard(document.getElementById('centerCard'), evC);
   renderEventCard(document.getElementById('leftCard'),  evL);
   renderEventCard(document.getElementById('rightCard'), evR);
 }
-
 function renderStage(){
-  renderClock();
+  renderClock(); renderHeader();
   const stage = state.seq[state.seqIdx % state.seq.length];
-
-  // Actualiza header (rango semana)
-  renderHeader();
-
   if (stage.type === 'banner'){
     renderBanner(document.getElementById('centerCard'), stage.url);
     document.getElementById('leftCard').innerHTML  = '';
@@ -376,11 +340,9 @@ function renderStage(){
   }
   if (stage.type === 'day'){
     const day = state.week.days[stage.offset];
-    // Si hay varios eventos en el día, rotamos con evIdx
     renderThree(day);
   }
 }
-
 function nextStage(){
   const stage = state.seq[state.seqIdx % state.seq.length];
   if (stage.type === 'day'){
@@ -390,13 +352,13 @@ function nextStage(){
       renderStage();
       return;
     }
-    state.evIdx = 0; // resetea
+    state.evIdx = 0;
   }
   state.seqIdx = (state.seqIdx + 1) % state.seq.length;
   renderStage();
 }
 
-/* ========= Sleep (descanso) ========= */
+/* ========= Sleep ========= */
 function hhmmToDateToday(hhmm){
   if(!hhmm) return null;
   const [H,M] = hhmm.split(':').map(n=>parseInt(n,10));
@@ -409,26 +371,21 @@ function isInRestWindow(now){
   const s = hhmmToDateToday(C.rest.start || '23:00');
   const e = hhmmToDateToday(C.rest.end   || '06:00');
   if(!s || !e) return false;
-
-  // ventana puede cruzar medianoche
-  if (s <= e){
-    return (now >= s && now < e);
-  } else {
-    return (now >= s || now < e);
-  }
+  if (s <= e){ return (now >= s && now < e); } // misma noche
+  return (now >= s || now < e);                // cruza medianoche
 }
 function updateSleep(){
   const ov = document.getElementById('sleepOverlay');
-  const clk = document.getElementById('sleepClock');
-  clk.textContent = fmtTime.format(toTZ(new Date()));
+  document.getElementById('sleepClock').textContent = fmtTime.format(toTZ(new Date()));
   const rest = isInRestWindow(toTZ(new Date()));
   ov.style.display = rest ? 'flex' : 'none';
   return rest;
 }
 
-/* ========= Semana/ICS/poll ========= */
+/* ========= ICS/Poll/Boot ========= */
 async function loadICS(){
-  const url = (C.icsUrl || (location.origin + '/calendarios/calendario.ics')) + (/\?/.test(C.icsUrl||'')?'&':'?') + 't=' + Date.now();
+  const base = (C.icsUrl || (location.origin + '/calendarios/calendario.ics'));
+  const url = base + (/\?/.test(base)?'&':'?') + 't=' + Date.now();
   const r = await fetch(url, {cache:'no-store'});
   if(!r.ok) throw new Error('HTTP '+r.status);
   const txt = await r.text();
@@ -443,39 +400,27 @@ function rebuildWeek(){
 }
 
 (async function boot(){
-  try{
-    state.allEvents = await loadICS();
-  }catch(e){
-    console.error('No se pudo leer ICS:', e);
-    state.allEvents = [];
-  }
+  try{ state.allEvents = await loadICS(); }catch{ state.allEvents = []; }
   rebuildWeek();
 
-  // Ciclo tarjetas
   clearInterval(state.timer);
   state.timer = setInterval(()=>{ if(!updateSleep()) nextStage(); }, C.slideMs || 12000);
 
-  // Reloj y sleep refresco
   setInterval(()=>{ renderClock(); updateSleep(); }, 1000);
 
-  // Poll ICS
   setInterval(async ()=>{
     try{
       const before = JSON.stringify(state.allEvents);
-      const fresh = await loadICS();
+      const fresh  = await loadICS();
       const after  = JSON.stringify(fresh);
-      if (before !== after){
-        state.allEvents = fresh;
-        rebuildWeek();
-      }
-    }catch(e){ /* mantener lo que hay */ }
+      if (before !== after){ state.allEvents = fresh; rebuildWeek(); }
+    }catch(e){ /* mantener estado */ }
   }, C.pollMs || 300000);
 
-  // Cambio de semana automático: cada minuto verificamos si cambió el domingo base
+  // cambio automático de semana (domingo 00:00)
   setInterval(()=>{
     const now = toTZ(new Date());
-    // Si es domingo y pasamos las 00:00, se regenera
-    const startWeekNow = weekFrom(now).sun.getTime();
+    const startWeekNow   = weekFrom(now).sun.getTime();
     const startWeekState = state.week.sun.getTime();
     if (startWeekNow !== startWeekState) rebuildWeek();
   }, 60000);
