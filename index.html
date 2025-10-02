@@ -1,103 +1,116 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<title>PIPJM — Calendario de la semana</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8">
+<title>Cartelera semanal PIPJM</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- Config externo (NO modificar este index para cambiar textos/colores) -->
+<!-- Config externo -->
 <script src="./config/config.js"></script>
 
 <style>
   :root{
-    /* Colores y tamaños; se sobreescriben en runtime desde config */
-    --bg:#0b1421; --card:#0f1b2c; --text:#e6eefc; --muted:#93a4bf; --accent:#16a34a; --warn:#ef4444;
-    --fs:22px; --fs-big:64px; --fs-h1:42px; --fs-h2:28px;
-    --shadow: 0 20px 50px rgba(0,0,0,.35);
+    --bg:#0b1421; --card:#0f1b2c; --text:#e6eefc; --muted:#93a4bf;
+    --accent:#16a34a; --warn:#ef4444; --shadow:0 20px 50px rgba(0,0,0,.35);
   }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0; font:500 var(--fs)/1.35 system-ui,-apple-system,Segoe UI,Roboto,Arial;
-    color:var(--text); background:var(--bg);
-    display:flex; align-items:center; justify-content:center;
-  }
-  .wrap{width:min(1400px,96vw); margin:auto; padding:18px}
-  header{
-    display:flex; align-items:baseline; justify-content:space-between; gap:16px;
-    margin:4px 0 14px;
-  }
-  .title{font-weight:900; font-size:calc(var(--fs-h1) + 4px); letter-spacing:.3px}
-  .clock{display:flex; gap:12px; align-items:baseline}
-  .dot{width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:8px}
-  .ok{background:var(--accent)} .bad{background:var(--warn)}
-  .big{font-size:var(--fs-big); font-weight:800; letter-spacing:.5px}
-  .muted{color:var(--muted)}
-
-  /* 3 paneles tipo carrusel */
-  .row{display:grid; grid-template-columns: 1fr 1.5fr 1fr; gap:16px}
-  .card{background:var(--card); border:1px solid rgba(255,255,255,.06); border-radius:16px; padding:16px; box-shadow:var(--shadow)}
-  .card h2{margin:.1em 0 .5em; font-size:var(--fs-h2); color:#cfe0ff}
-  .tag{display:inline-block; padding:4px 10px; border-radius:999px; background:#122742; color:#cfe0ff; font-weight:900; font-size:16px}
-  .ev{border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:12px}
-  .row2{display:grid; grid-template-columns: 1fr auto; gap:12px; align-items:center}
-  .qr{width:220px; height:220px; border-radius:12px; background:#fff; display:flex; align-items:center; justify-content:center; overflow:hidden}
-  .qr img{max-width:100%; max-height:100%}
-  .marquee{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-  .banner{display:flex; align-items:center; justify-content:center; min-height:48vh}
-  .banner img{max-width:100%; max-height:58vh; border-radius:14px; box-shadow:var(--shadow)}
-  .centerText{display:flex; align-items:center; justify-content:center; min-height:48vh; flex-direction:column; gap:10px}
-  .titleCenter{font-weight:900; text-align:center; font-size:calc(var(--fs-h1) + 2px)}
-  .subCenter{color:var(--muted); text-align:center; font-size:calc(var(--fs) + 2px)}
-
-  /* Columna derecha: listado del día actual */
-  .list{display:grid; gap:10px}
-  .list .ev .time{font-weight:900}
-
-  .status{position:fixed; left:12px; bottom:10px; font:600 12px system-ui; color:#9fb3d4}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{height:100vh;background:var(--bg);color:var(--text);
+       font:500 22px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Arial;
+       display:flex;align-items:center;justify-content:center;}
+  .wrap{width:96vw;max-width:1400px;padding:20px}
+  h1{font-size:40px;text-align:center;margin-bottom:16px}
+  .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;align-items:stretch}
+  .card{background:var(--card);border:1px solid rgba(255,255,255,.08);
+        border-radius:16px;padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;justify-content:center}
+  .time{font-size:26px;font-weight:700;margin-bottom:6px}
+  .title{font-size:22px;font-weight:700}
+  .place{color:var(--muted);margin-top:6px}
+  .extra{color:var(--muted);font-size:18px;margin-top:4px}
+  .qr{margin-top:10px;display:flex;justify-content:center}
+  .qr img{max-width:200px;border-radius:12px}
+  .center{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <div class="title">Calendario de la semana</div>
-      <div class="clock">
-        <span id="liveDot" class="dot ok"></span>
-        <div id="now" class="big">--:--</div>
-        <div id="date" class="muted" style="font-size:calc(var(--fs) + 2px)"></div>
-      </div>
-    </header>
-
-    <div class="row">
-      <!-- Panel previo -->
-      <div id="panel-prev" class="card">
-        <h2 id="h-prev">Anterior</h2>
-        <div id="body-prev"></div>
-      </div>
-
-      <!-- Panel actual (grande) -->
-      <div id="panel-now" class="card">
-        <h2 id="h-now">Hoy</h2>
-        <div id="body-now"></div>
-      </div>
-
-      <!-- Panel siguiente -->
-      <div id="panel-next" class="card">
-        <h2 id="h-next">Siguiente</h2>
-        <div id="body-next"></div>
-      </div>
-    </div>
-
-    <!-- Columna/listado del día actual -->
-    <div class="card" style="margin-top:16px">
-      <h2 id="listTitle">Eventos de hoy</h2>
-      <div id="list" class="list"></div>
-    </div>
+<div class="wrap">
+  <h1 id="headerTitle">Calendario de la semana</h1>
+  <div class="grid">
+    <div class="card" id="leftCard"></div>
+    <div class="card" id="centerCard"></div>
+    <div class="card" id="rightCard"></div>
   </div>
+</div>
 
-  <div class="status" id="status">Cargando ICS…</div>
+<script>
+const C = window.CARTELERA_CONFIG;
+const toTZ = d => new Date(d.toLocaleString('en-US',{timeZone:C.timeZone}));
+const startOfDay = d => (d=new Date(d), d.setHours(0,0,0,0), d);
+const addDays = (d,n)=> (d=new Date(d), d.setDate(d.getDate()+n), d);
+const sameDay = (a,b)=>{a=toTZ(a);b=toTZ(b);
+  return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()};
+const unfold = txt => txt.replace(/(?:\r\n|\n)[ \t]/g,'');
+const fmtDate = new Intl.DateTimeFormat('es-PR',{weekday:'long',day:'2-digit',month:'long',timeZone:C.timeZone});
+const fmtTime = new Intl.DateTimeFormat('es-PR',{hour:'2-digit',minute:'2-digit',hour12:true,timeZone:C.timeZone});
+const hm = d => fmtTime.format(toTZ(d));
 
-  <!-- Lógica principal -->
-  <script src="./js/main.js"></script>
+function qrFor(url){ if(!url) return ''; return `https://api.qrserver.com/v1/create-qr-code/?size=${C.qrSize}x${C.qrSize}&data=${encodeURIComponent(url)}`; }
+
+function parseICS(txt){
+  txt = unfold(txt);
+  const blocks = txt.split(/BEGIN:VEVENT/).slice(1).map(b=>'BEGIN:VEVENT'+b.split('END:VEVENT')[0]);
+  const out = [];
+  for(const b of blocks){
+    const get = (k)=>{ const m=b.match(new RegExp('^'+k+'(?:;[^:\\n]*)?:(.*)$','mi')); return m?m[1].trim():''; };
+    const dtm = b.match(/^DTSTART[^:]*:(.*)$/mi); if(!dtm) continue;
+    const val = dtm[1].trim(); const d = val.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})/);
+    const date = d? new Date(Date.UTC(+d[1],+d[2]-1,+d[3],+d[4]+4,+d[5])) : null;
+    out.push({
+      start: date, summary:get('SUMMARY'), location:get('LOCATION'),
+      url:get('URL'), desc:get('DESCRIPTION')
+    });
+  }
+  return out.sort((a,b)=>a.start-b.start);
+}
+
+function renderCard(holder, ev, label){
+  if(!ev){
+    holder.innerHTML = `<div class="center"><div>${label}</div><div class="place">Sin evento</div></div>`;
+    return;
+  }
+  const qr = ev.url? `<div class="qr"><img src="${qrFor(ev.url)}"></div>`:'';
+  holder.innerHTML = `
+    <div class="time">${hm(ev.start)}</div>
+    <div class="title">${ev.summary||'Evento'}</div>
+    <div class="place">${ev.location||''}</div>
+    <div class="extra">${ev.desc||''}</div>
+    ${qr}`;
+}
+
+(async function(){
+  try{
+    const res = await fetch(C.icsUrl+'?t='+Date.now(),{cache:'no-store'});
+    const txt = await res.text();
+    const events = parseICS(txt);
+    const today = toTZ(new Date());
+    const sun = startOfDay(addDays(today,-today.getDay()));
+    const days = [...Array(7)].map((_,i)=> addDays(sun,i));
+
+    let idx = days.findIndex(d=> sameDay(d,today));
+    if(idx<0) idx=0;
+
+    function update(){
+      const prevDay = days[(idx-1+7)%7], currDay = days[idx], nextDay = days[(idx+1)%7];
+      const evPrev = events.find(e=> sameDay(e.start,prevDay));
+      const evCurr = events.find(e=> sameDay(e.start,currDay));
+      const evNext = events.find(e=> sameDay(e.start,nextDay));
+      renderCard(document.getElementById('leftCard'), evPrev, 'Anterior');
+      renderCard(document.getElementById('centerCard'), evCurr, 'Hoy');
+      renderCard(document.getElementById('rightCard'), evNext, 'Siguiente');
+    }
+    update();
+    setInterval(()=>{ idx=(idx+1)%7; update(); }, C.slideMs);
+  }catch(e){ console.error('ICS error',e); }
+})();
+</script>
 </body>
 </html>
