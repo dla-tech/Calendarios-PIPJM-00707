@@ -119,61 +119,37 @@
             </div>`;
   }
 
-function dayCard(day, list){
-  const title = cap1(fmtDay.format(day));
-  if(!list || !list.length){
+function dayCard(day, evs){
+  const dayName = dateLong(day);
+  if(!evs.length){
     return `
-      <div>
-        <div class="subtitle">${title}</div>
-        <div class="muted">Sin eventos</div>
+      <div class="ev">
+        <h2>${dayName}</h2>
+        <p class="muted">Sin eventos</p>
       </div>`;
   }
 
-  const items = list.map(ev=>{
-    const df = parseDescFields(ev.desc);
-    const pinUrl = hasPin(ev) ? (/^https?:\/\//i.test(ev.url||'') ? ev.url : ev.location) : '';
-    const showQr = !!pinUrl && !isTemple(ev.location||'');
+  return `
+    <div class="ev">
+      <h2>${dayName}</h2>
+      ${evs.map(ev=>{
+        const end = ev.end ? ' – ' + hm(ev.end) : '';
+        const place = ev.location || '';
+        const hasPinUrl = firstUrl(ev.url, ev.location);
+        const temple = isTemple(ev.location);
+        const showQr = hasPinUrl && !temple;
+        const qr = showQr ? `<div class="qr center"><img src="${qrFor(hasPinUrl)}" alt="QR localización"></div>` : '';
 
-    const end = ev.end ? ` – ${hm(ev.end)}` : '';
-    const where = showQr ? 'Pin disponible (escanea el QR)' : (ev.location||'');
-
-    // Evitar “Predicador” duplicado si el nombre ya está en SUMMARY
-    let preacherLine = '';
-    if (df.preacher) {
-      const inSummary = (ev.summary||'').toLowerCase().includes(df.preacher.toLowerCase());
-      if (!inSummary) preacherLine = `<div class="muted">Predicador: ${df.preacher}</div>`;
-    }
-
-    const managerLine = df.manager ? `<div class="muted">Encargado: ${df.manager}</div>` : '';
-    const extraLine   = (df.extra && df.extra.length)
-                        ? `<div class="muted">${df.extra.join(' · ')}</div>` : '';
-
-    // QR: solo si aplica (no renderizamos el contenedor vacío)
-    const qrBlock = showQr
-      ? `<div class="qr"><img alt="QR" src="${qrFor(pinUrl)}"></div>`
-      : '';
-
-    const pinLine = (showQr ? `<div class="muted" style="margin-top:6px;word-break:break-all">${pinUrl}</div>` : '');
-
-    return `
-      <div class="ev">
-        <div class="row">
-          <div>
-            <div class="time tag">${ev.start ? hm(ev.start) : ''}${end}</div>
-            <div style="font-weight:800; margin-top:6px">${ev.summary||'Evento'}</div>
-            ${where?`<div class="muted">${where}</div>`:''}
-            ${preacherLine}${managerLine}${extraLine}
-            ${pinLine}
+        return `
+          <div class="card-body">
+            <div class="tag">${hm(ev.start)}${end}</div>
+            <h3>${ev.summary||'Evento'}</h3>
+            <p class="muted">${place}</p>
+            ${qr}
           </div>
-          ${qrBlock}
-        </div>
-      </div>`;
-  }).join('\n');
-
-  return `<div>
-            <div class="subtitle">${title}</div>
-            <div class="evlist">${items}</div>
-          </div>`;
+        `;
+      }).join('')}
+    </div>`;
 }
 
   // === Secuencia (intro → 7 días → outro)
