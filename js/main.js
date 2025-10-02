@@ -1,6 +1,7 @@
 (function(){
   const C = window.CARTELERA_CONFIG || {};
-  // === Aplicar tema ===
+
+  // ===== Tema =====
   (function applyTheme(){
     const r = document.documentElement.style;
     const t = C.theme||{};
@@ -18,7 +19,7 @@
     r.setProperty('--shadow', t.shadow||'0 20px 60px rgba(0,0,0,.35)');
   })();
 
-  // === Helpers de fecha ===
+  // ===== Fecha/Hora =====
   const fmtDate = new Intl.DateTimeFormat('es-PR',{weekday:'long', day:'2-digit', month:'long', year:'numeric', timeZone:C.timeZone});
   const fmtTime = new Intl.DateTimeFormat('es-PR',{hour:'numeric', minute:'2-digit', hour12:true, timeZone:C.timeZone});
   const toTZ = d => new Date(d.toLocaleString('en-US',{timeZone:C.timeZone}));
@@ -26,22 +27,17 @@
   const addDays = (d,n)=> (d=new Date(d), d.setDate(d.getDate()+n), d);
   const sameDay = (a,b)=>{a=toTZ(a);b=toTZ(b);return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()};
   const unfold = txt => txt.replace(/(?:\r\n|\n)[ \t]/g,'');
+  const cap = s => { s=String(s||''); return s? s.charAt(0).toUpperCase()+s.slice(1): s; };
+  const dateLong = d => cap(fmtDate.format(toTZ(d)));
+  const hm = d => fmtTime.format(toTZ(d)).toLowerCase().replace(/\s/g,'').replace('a. m.','am').replace('p. m.','pm');
 
-  function cap(s){ s=String(s||''); return s? s.charAt(0).toUpperCase()+s.slice(1): s; }
-  function dateLong(d){ return cap(fmtDate.format(toTZ(d))); }
-  function hm(d){
-    return fmtTime.format(toTZ(d))
-      .toLowerCase().replace(/\s/g,'').replace('a. m.','am').replace('p. m.','pm');
-  }
-
-  // === QR ===
+  // ===== Utils =====
   function qrFor(url){
     if(!url) return '';
     const u = encodeURIComponent(url);
-    return `https://api.qrserver.com/v1/create-qr-code/?size=${C.qrSize||260}x${C.qrSize||260}&data=${u}`;
+    const size = C.qrSize||260;
+    return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${u}`;
   }
-
-  // === Parse de DESCRIPTION (opcional) ===
   function parseDesc(desc){
     const out = {preacher:'', manager:''};
     if(!desc) return out;
@@ -54,22 +50,18 @@
     }
     return out;
   }
-
-  // Si un texto indica “templo”
   function isTemple(text){
     if(!text) return false;
     const t = String(text).toLowerCase();
     return (C.templeKeywords||[]).some(k => t.includes(String(k).toLowerCase()));
   }
-
-  // Primera URL válida (para QR) entre URL del evento y LOCATION si fuera URL
   function firstPinUrl(ev){
     if (ev.url && /^https?:\/\//i.test(ev.url)) return ev.url;
     if (ev.location && /^https?:\/\//i.test(ev.location)) return ev.location;
     return '';
   }
 
-  // === ICS ===
+  // ===== ICS =====
   function parseICS(txt){
     txt = unfold(txt);
     const blocks = txt.split(/BEGIN:VEVENT/).slice(1).map(b=>'BEGIN:VEVENT'+b.split('END:VEVENT')[0]);
@@ -90,7 +82,7 @@
       })();
       if(!when) continue;
 
-      // DTEND (si existe)
+      // DTEND
       let end = null;
       const mEnd = b.match(/^DTEND[^:]*:([^\n]+)$/mi);
       if (mEnd){
@@ -113,7 +105,6 @@
     out.sort((a,b)=> a.start - b.start);
     return out;
   }
-
   function groupWeek(events, baseDate){
     const pr = toTZ(baseDate);
     const sun = startOfDay(addDays(pr, -pr.getDay())); // domingo
@@ -128,13 +119,12 @@
     return {sun, days: weekDays, map};
   }
 
-  // === Estado ===
+  // ===== Estado =====
   let state = {
     events: [],
     week: null,
-    // Secuencia tipo ruleta: [intro] -> 7 días -> [outro]
-    seq: [],
-    idx: 0,       // índice de la tarjeta “actual” en la secuencia
+    seq: [],   // [intro?] + 7 días + [outro?]
+    idx: 0,
     timer: null
   };
 
@@ -147,62 +137,51 @@
     state.idx = 0;
   }
 
-  // === Render tarjetas ===
-  function renderClockAndWeek(){
+  // ===== Render =====
+  function renderClockAndRange(){
     document.getElementById('clockNow').textContent = fmtTime.format(toTZ(new Date()));
     const s = state.week.days[0], e = state.week.days[6];
     document.getElementById('weekRange').textContent = `${dateLong(s)} / ${dateLong(e)}`;
   }
 
-  function cardIntro(){
-    // Si hay banner, lo muestra. Si no, texto grande.
+  function blockIntro(){
     const banner = C.intro?.bannerUrl;
     const txt    = C.intro?.text;
-    if (banner) return `
-      <div class="centerBanner"><img src="${banner}" alt="Portada"></div>
-    `;
-    return `
-      <div class="centerText"><div class="big">${txt||''}</div></div>
-    `;
+    if (banner) return `<div class="centerBanner"><img src="${banner}" alt="Inicio"></div>`;
+    return `<div class="centerText"><div class="big">${txt||''}</div></div>`;
   }
-  function cardOutro(){
+  function blockOutro(){
     const banner = C.outro?.bannerUrl;
     const txt    = C.outro?.text;
-    if (banner) return `
-      <div class="centerBanner"><img src="${banner}" alt="Cierre"></div>
-    `;
-    return `
-      <div class="centerText"><div class="big">${txt||''}</div></div>
-    `;
+    if (banner) return `<div class="centerBanner"><img src="${banner}" alt="Cierre"></div>`;
+    return `<div class="centerText"><div class="big">${txt||''}</div></div>`;
   }
 
-  function renderDayCard(day){
-    const dayKey = startOfDay(day).getTime();
-    const list = state.week.map.get(dayKey) || [];
+  function renderDay(day){
+    const key = startOfDay(day).getTime();
+    const list = state.week.map.get(key) || [];
     if (!list.length){
       return `
         <div class="date">${dateLong(day)}</div>
         <div class="muted">Sin eventos</div>
       `;
     }
-
-    // Un SOLO cuadro con TODOS los eventos del día (no por eventos separados)
-    // Se listan en bloque, con hora, título, encargado/predicador, lugar.
     const parts = [];
-    for (const ev of list){
-      const t = hm(ev.start) + (ev.end ? ' – '+hm(ev.end) : '');
-      const parsed = parseDesc(ev.desc);
+    for(const ev of list){
+      const timeStr = hm(ev.start) + (ev.end ? ' – '+hm(ev.end) : '');
+      const {preacher, manager} = parseDesc(ev.desc);
       const pinUrl = firstPinUrl(ev);
       const showQr = pinUrl && !isTemple(ev.location);
-      const block = `
+      parts.push(`
         <div class="ev">
           <div class="row ${showQr ? '' : 'noqr'}">
             <div>
-              <div class="tag">${t}</div>
+              <div class="date">${dateLong(day)}</div>
+              <div class="tag">${timeStr}</div>
               <div class="title">${ev.summary || 'Evento'}</div>
               ${ev.location ? `<div class="muted"><strong>Lugar:</strong> ${ev.location}</div>` : ''}
-              ${parsed.manager  ? `<div class="muted"><strong>Encargado:</strong> ${parsed.manager}</div>` : ''}
-              ${parsed.preacher ? `<div class="muted"><strong>Predicador:</strong> ${parsed.preacher}</div>` : ''}
+              ${manager  ? `<div class="muted"><strong>Encargado:</strong> ${manager}</div>` : ''}
+              ${preacher ? `<div class="muted"><strong>Predicador:</strong> ${preacher}</div>` : ''}
             </div>
             ${showQr ? `
               <div>
@@ -211,50 +190,37 @@
               </div>` : ``}
           </div>
         </div>
-      `;
-      parts.push(block);
+      `);
     }
-
-    return `
-      <div class="date">${dateLong(day)}</div>
-      ${parts.join('<div class="hr"></div>')}
-    `;
+    return parts.join('<div class="hr"></div>');
   }
 
   function renderCard(node){
-    if (node.type==='intro') return `<div class="card">${cardIntro()}</div>`;
-    if (node.type==='outro') return `<div class="card">${cardOutro()}</div>`;
+    if (node.type==='intro') return `<div class="card">${blockIntro()}</div>`;
+    if (node.type==='outro') return `<div class="card">${blockOutro()}</div>`;
     if (node.type==='day'){
       const d = state.week.days[node.dayOffset];
-      return `<div class="card">${renderDayCard(d)}</div>`;
+      return `<div class="card">${renderDay(d)}</div>`;
     }
     return `<div class="card"><div class="muted">—</div></div>`;
   }
 
-  function renderBoard(){
-    renderClockAndWeek();
-
-    // índices prev / current / next
+  function paint(){
+    renderClockAndRange();
     const N = state.seq.length;
-    const cur = state.idx % N;
+    const cur  = state.idx % N;
     const prev = (cur - 1 + N) % N;
     const next = (cur + 1) % N;
-
-    const html = [
-      renderCard(state.seq[prev]),
-      renderCard(state.seq[cur]),
-      renderCard(state.seq[next])
-    ].join('\n');
-
+    const html = [ renderCard(state.seq[prev]), renderCard(state.seq[cur]), renderCard(state.seq[next]) ].join('');
     document.getElementById('board').innerHTML = html;
   }
 
   function advance(){
     state.idx = (state.idx + 1) % state.seq.length;
-    renderBoard();
+    paint();
   }
 
-  // === Carga ICS + semana ===
+  // ===== ICS / Semana =====
   async function loadICS(){
     const url = C.icsUrl + (C.icsUrl.includes('?')?'&':'?') + 't=' + Date.now();
     try{
@@ -268,48 +234,41 @@
       document.getElementById('status').textContent = 'ICS ERROR';
     }
   }
-
   function rebuildWeek(){
     state.week = groupWeek(state.events, new Date());
     buildSequence();
-    renderBoard();
+    paint();
   }
-
-  // Rollover de semana (domingo a 00:00)
   function maybeRolloverWeek(){
     const now = toTZ(new Date());
     const wd = now.getDay();
     const hr = now.getHours();
     if (wd === (C.weekRollover?.weekday ?? 0) && hr >= (C.weekRollover?.hour ?? 0)) {
       const curSun = startOfDay(addDays(now, -now.getDay()));
-      if (!sameDay(curSun, state.week.sun)) {
-        rebuildWeek();
-      }
+      if (!sameDay(curSun, state.week.sun)) rebuildWeek();
     }
   }
 
-  // === Boot ===
+  // ===== Boot =====
   (async function boot(){
     await loadICS();
     rebuildWeek();
 
-    // reloj
+    // reloj + rollover
     setInterval(()=>{ 
       document.getElementById('clockNow').textContent = fmtTime.format(toTZ(new Date()));
       maybeRolloverWeek();
     }, 1000);
 
-    // slide
+    // rotación ruleta
     clearInterval(state.timer);
     state.timer = setInterval(advance, C.slideMs||12000);
 
     // polling ICS
     setInterval(async ()=>{
-      const beforeLen = state.events.length;
+      const before = state.events.length;
       await loadICS();
-      if (state.events.length !== beforeLen){
-        rebuildWeek();
-      }
+      if (state.events.length !== before) rebuildWeek();
     }, C.pollMs||300000);
   })();
 })();
