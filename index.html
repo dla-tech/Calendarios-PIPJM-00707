@@ -2,429 +2,78 @@
 <html lang="es">
 <head>
 <meta charset="utf-8" />
-<title>Cartelera semanal PIPJM</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<script src="./config/config.js"></script>
+<title>Cartelera semanal</title>
+
+<!-- Config externo -->
+<script src="config/config.js"></script>
+
 <style>
   :root{
-    --bg:#0b1421; --card:#0f1b2c; --text:#e6eefc; --muted:#93a4bf;
-    --accent:#16a34a; --warn:#ef4444; --shadow:0 20px 50px rgba(0,0,0,.35);
-    --fs:22px; --fs-h1:40px; --fs-h2:22px; --fs-clock:64px;
+    --bg:#0b1421; --card:#0f1b2c; --text:#e6eefc; --muted:#93a4bf; --accent:#16a34a; --warn:#ef4444;
+    --fs:22px; --fs-h1:42px; --fs-h2:28px; --clock:64px;
+    --shadow: 0 20px 50px rgba(0,0,0,.35);
+    --radius: 18px;
   }
-  *{box-sizing:border-box;margin:0;padding:0}
+  *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    background:var(--bg); color:var(--text);
-    font:500 var(--fs)/1.35 system-ui,-apple-system,Segoe UI,Roboto,Arial;
-    display:flex; align-items:center; justify-content:center;
+    margin:0; background:var(--bg); color:var(--text);
+    font:500 var(--fs)/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    display:flex; flex-direction:column; align-items:center;
   }
   .wrap{width:min(1400px,96vw); margin:auto; padding:18px}
-  header{text-align:center;margin-bottom:16px}
-  header h1{font-size:var(--fs-h1); font-weight:900; letter-spacing:.2px}
-  header .sub{color:var(--muted); margin-top:4px; font-weight:600}
-
-  .clockBar{
-    margin:10px auto 18px; display:flex; align-items:baseline;
-    justify-content:center; gap:14px; color:var(--text);
-  }
-  .clockBar .dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
-  .clockBar .now{font-size:var(--fs-clock);font-weight:900;line-height:1}
-  .clockBar .date{color:var(--muted)}
-
-  .grid{
-    display:grid; gap:18px; align-items:stretch;
-    grid-template-columns:1fr 1fr 1fr;
+  .top{display:flex; flex-direction:column; align-items:center; gap:6px; margin:6px 0 16px}
+  .clockRow{display:flex; align-items:baseline; gap:12px}
+  .dot{width:10px;height:10px;border-radius:999px;background:var(--accent);display:inline-block}
+  .clock{font-size:var(--clock); font-weight:900; letter-spacing:.3px}
+  h1{margin:0; font-size:var(--fs-h1); font-weight:800}
+  .range{color:var(--muted)}
+  .lane{
+    display:grid; gap:18px;
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items:stretch;
   }
   .card{
-    background:var(--card); border:1px solid rgba(255,255,255,.08);
-    border-radius:16px; padding:18px; box-shadow:var(--shadow);
-    display:flex; flex-direction:column; justify-content:center; overflow:hidden;
-    min-height:56vh;
+    background:var(--card); border:1px solid rgba(255,255,255,.06);
+    border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:18px; min-height:62vh; display:flex; flex-direction:column; justify-content:center;
   }
-  .card.centerpiece{transform:scale(1.02)}
-  .time{font-weight:900; font-size:calc(var(--fs) + 6px); margin-bottom:6px}
-  .title{font-weight:900; font-size:var(--fs-h2)}
-  .place{color:var(--muted); margin-top:6px}
-  .extra{color:var(--muted); font-size:calc(var(--fs) - 2px); margin-top:4px; white-space:pre-wrap}
-  .qr{margin-top:10px; display:flex; justify-content:center}
-  .qr img{max-width:220px; border-radius:12px}
-  .center{display:flex; align-items:center; justify-content:center; height:100%}
-  .banner img{max-width:100%; max-height:58vh; border-radius:14px; box-shadow:var(--shadow)}
+  .center{ text-align:center }
+  .title{font-weight:900; font-size:calc(var(--fs-h1) - 2px); margin:0 0 6px}
   .muted{color:var(--muted)}
-
-  /* Sleep overlay */
-  #sleepOverlay{
-    position:fixed; inset:0; background:#000; display:none;
-    align-items:center; justify-content:center; z-index:1000;
-    color:#9fb3d4; text-align:center; padding:20px;
-  }
-  #sleepOverlay .sleepClock{font-size:64px;font-weight:900;margin-bottom:8px}
-  #sleepOverlay .msg{opacity:.85}
+  .tag{display:inline-block; padding:4px 10px; border-radius:999px; background:#122742; color:#cfe0ff; font-weight:800; font-size:16px}
+  .evlist{display:grid; gap:10px; margin-top:8px}
+  .ev{border:1px solid rgba(255,255,255,.07); border-radius:12px; padding:12px}
+  .row{display:grid; grid-template-columns: 1fr auto; gap:12px; align-items:center}
+  .time{font-weight:800}
+  .qr{width:160px; height:160px; background:#fff; border-radius:12px; display:flex; align-items:center; justify-content:center; overflow:hidden}
+  .qr img{max-width:100%; max-height:100%}
+  .subtitle{font-weight:700; font-size:var(--fs-h2); margin:.2em 0 .4em}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <h1 id="headerTitle">Calendario de la semana</h1>
-    <div class="sub" id="headerRange">—</div>
-  </header>
+  <div class="wrap">
 
-  <div class="clockBar">
-    <span class="dot"></span>
-    <div class="now" id="now">--:--</div>
-    <div class="date" id="today">—</div>
+    <!-- Encabezado -->
+    <div class="top">
+      <div class="clockRow">
+        <span class="dot"></span>
+        <div id="now" class="clock">--:--</div>
+      </div>
+      <h1>Calendario de la semana</h1>
+      <div id="weekRange" class="range">—</div>
+    </div>
+
+    <!-- Tres tarjetas -->
+    <div class="lane">
+      <div id="cardPrev" class="card"></div>
+      <div id="cardCurr" class="card"></div>
+      <div id="cardNext" class="card"></div>
+    </div>
+
   </div>
 
-  <div class="grid">
-    <div class="card" id="leftCard"></div>
-    <div class="card centerpiece" id="centerCard"></div>
-    <div class="card" id="rightCard"></div>
-  </div>
-</div>
-
-<!-- Sleep overlay -->
-<div id="sleepOverlay">
-  <div>
-    <div class="sleepClock" id="sleepClock">--:--</div>
-    <div class="msg" id="sleepMsg">En pausa (horario de descanso)</div>
-  </div>
-</div>
-
-<script>
-/* ========= Helpers ========= */
-const C = window.CARTELERA_CONFIG || {};
-(function applyTheme(){
-  const r = document.documentElement;
-  const T = C.theme || {};
-  if (T.bg)       r.style.setProperty('--bg', T.bg);
-  if (T.card)     r.style.setProperty('--card', T.card);
-  if (T.text)     r.style.setProperty('--text', T.text);
-  if (T.muted)    r.style.setProperty('--muted', T.muted);
-  if (T.accent)   r.style.setProperty('--accent',T.accent);
-  if (T.warn)     r.style.setProperty('--warn',  T.warn);
-  if (T.shadow)   r.style.setProperty('--shadow',T.shadow);
-  if (T.fontSize) r.style.setProperty('--fs', T.fontSize+'px');
-  if (T.h1)       r.style.setProperty('--fs-h1', T.h1+'px');
-  if (T.h2)       r.style.setProperty('--fs-h2', T.h2+'px');
-  if (T.bigClock) r.style.setProperty('--fs-clock', T.bigClock+'px');
-})();
-
-const TZ = C.timeZone || 'America/Puerto_Rico';
-const toTZ = d => new Date(d.toLocaleString('en-US',{timeZone:TZ}));
-const startOfDay = d => (d=new Date(d), d.setHours(0,0,0,0), d);
-const addDays = (d,n)=> (d=new Date(d), d.setDate(d.getDate()+n), d);
-const sameDay = (a,b)=>{a=toTZ(a);b=toTZ(b);
-  return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()};
-const unfold = txt => txt.replace(/(?:\r\n|\n)[ \t]/g,'');
-const fmtDate = new Intl.DateTimeFormat('es-PR',{weekday:'long',day:'2-digit',month:'long',year:'numeric', timeZone:TZ});
-const fmtTime = new Intl.DateTimeFormat('es-PR',{hour:'2-digit',minute:'2-digit', hour12:true, timeZone:TZ});
-const hm = d => fmtTime.format(toTZ(d)).toLowerCase().replace(/\s/g,'').replace('a. m.','am').replace('p. m.','pm');
-const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
-
-function weekFrom(date){
-  const pr = toTZ(date);
-  const sun = startOfDay(addDays(pr, -pr.getDay()));
-  const days = [...Array(7)].map((_,i)=> addDays(sun,i));
-  return {sun, days};
-}
-function qrFor(url){
-  if(!url) return '';
-  const size = C.qrSize || 220;
-  return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(url)}`;
-}
-function firstUrl(...vals){
-  for(const v of vals){ if (v && /^https?:\/\//i.test(v)) return v; }
-  return '';
-}
-function isTemple(text){
-  if(!text) return false;
-  const t = String(text).toLowerCase();
-  const keys = (C.templeKeywords||['templo','iglesia']);
-  return keys.some(k => t.includes(k.toLowerCase()));
-}
-function parseDescFields(desc){
-  const out = { preacher:'', manager:'', rest:[] };
-  if(!desc) return out;
-  const lines = String(desc).split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
-  const patP = C.fieldsFromDescription?.preacher || /(predicador|predica)\s*:\s*(.+)/i;
-  const patM = C.fieldsFromDescription?.manager  || /(encargad[oa])\s*:\s*(.+)/i;
-  for(const ln of lines){
-    let m = ln.match(patP); if(m && !out.preacher) out.preacher=m[2].trim();
-    m = ln.match(patM); if(m && !out.manager) out.manager=m[2].trim();
-  }
-  out.rest = lines.filter(ln=> !patP.test(ln) && !patM.test(ln));
-  return out;
-}
-
-/* ========= ICS ========= */
-function parseICS(txt){
-  txt = unfold(txt);
-  const blocks = txt.split(/BEGIN:VEVENT/).slice(1).map(b=>'BEGIN:VEVENT'+b.split('END:VEVENT')[0]);
-  const out = [];
-  for(const b of blocks){
-    const get = (k)=>{ const m=b.match(new RegExp('^'+k+'(?:;[^:\\n]*)?:(.*)$','mi')); return m?m[1].trim():''; };
-    const dtm = b.match(/^DTSTART([^:\n]*)?:([^\n]+)$/mi); if(!dtm) continue;
-    const params=(dtm[1]||'').toUpperCase(); const val=dtm[2].trim();
-
-    function parseVal(v){
-      const dt = v.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z)?$/);
-      const dOnly = v.match(/^(\d{4})(\d{2})(\d{2})$/);
-      if (dt){
-        const [_,Y,M,D,h,m,s,Z] = dt;
-        if (/TZID=AMERICA\/PUERTO_RICO/.test(params)) return new Date(Date.UTC(+Y,+M-1,+D,+h+4,+m,+s));
-        if (Z) return new Date(Date.UTC(+Y,+M-1,+D,+h,+m,+s));
-        return new Date(Date.UTC(+Y,+M-1,+D,+h+4,+m,+s));
-      }
-      if (dOnly){
-        const [_,Y,M,D] = dOnly;
-        return new Date(Date.UTC(+Y,+M-1,+D,4,0,0));
-      }
-      return null;
-    }
-
-    const start = parseVal(val);
-    if(!start) continue;
-
-    let end = null;
-    const dtEnd = b.match(/^DTEND[^:]*:([^\n]+)$/mi);
-    if (dtEnd) end = parseVal(dtEnd[1].trim());
-
-    out.push({
-      start, end,
-      summary:  get('SUMMARY'),
-      location: get('LOCATION'),
-      url:      get('URL'),
-      desc:     get('DESCRIPTION')
-    });
-  }
-  return out.sort((a,b)=>a.start-b.start);
-}
-function groupByWeek(events, baseDate){
-  const {sun, days} = weekFrom(baseDate);
-  const map = new Map(days.map(d=>[startOfDay(d).getTime(), []]));
-  for(const ev of events){
-    for(const d of days){
-      if (sameDay(ev.start, d)){ map.get(startOfDay(d).getTime()).push(ev); break; }
-    }
-  }
-  for(const [k, list] of map){ list.sort((a,b)=>a.start-b.start); }
-  return {sun, days, map};
-}
-
-/* ========= Estado ========= */
-let state = {
-  allEvents: [],
-  week: null,
-  seq: [],       // intro, 7 días, outro
-  seqIdx: 0,
-  evIdx: 0,      // índice del evento dentro del día
-  timer: null
-};
-
-function buildSequence(){
-  const seq = [];
-  if (C.intro?.bannerUrl) seq.push({type:'banner', url:C.intro.bannerUrl});
-  if (C.intro?.text)      seq.push({type:'text', text:C.intro.text});
-  for (let i=0;i<7;i++)   seq.push({type:'day', offset:i});
-  if (C.outro?.bannerUrl) seq.push({type:'banner', url:C.outro.bannerUrl});
-  if (C.outro?.text)      seq.push({type:'text', text:C.outro.text});
-  state.seq = seq;
-  state.seqIdx = 0;
-}
-
-function dateLong(d){ return cap(fmtDate.format(toTZ(d))); }
-function renderHeader(){
-  const s = state.week.days[0], e = state.week.days[6];
-  document.getElementById('headerTitle').textContent = C.labels?.headerTitle || 'Calendario de la semana';
-  document.getElementById('headerRange').textContent = `${dateLong(s)} — ${dateLong(e)}`;
-}
-function renderClock(){
-  const now = new Date();
-  document.getElementById('now').textContent = fmtTime.format(toTZ(now));
-  document.getElementById('today').textContent = dateLong(now);
-}
-function toDateFromHm(baseDate, hmStr){
-  if(!hmStr) return null;
-  const [H,M] = hmStr.split(':').map(n=>parseInt(n,10));
-  const d = startOfDay(baseDate);
-  d.setHours(H-4, M||0, 0, 0); // PR≈UTC-4
-  return d;
-}
-function dayItems(day){
-  const key = startOfDay(day).getTime();
-  const list = state.week.map.get(key) || [];
-  if (list.length) return list;
-  const weekday = toTZ(day).getDay(); // 0..6
-  const defs = (C.defaultsByWeekday && C.defaultsByWeekday[weekday]) || [];
-  if (!defs.length) return [];
-  return defs.map(d => ({
-    start: d.start ? toDateFromHm(day,d.start) : day,
-    end:   d.end   ? toDateFromHm(day,d.end)   : null,
-    summary: d.title || 'Evento',
-    location: d.where || '',
-    url: d.url || '',
-    desc: d.desc || ''
-  }));
-}
-function renderBanner(holder, url) {
-  holder.innerHTML = `<div class="center banner"><img src="${url}" alt="Banner"></div>`;
-}
-function renderText(holder, text) {
-  const s = state.week.days[0], e = state.week.days[6];
-  holder.innerHTML = `
-    <div class="center" style="height:58vh;flex-direction:column;gap:10px;text-align:center">
-      <div style="font-weight:900;font-size:calc(var(--fs-h1) + 6px)">${text}</div>
-      <div class="muted">${dateLong(s)} — ${dateLong(e)}</div>
-    </div>`;
-}
-function renderEventCard(holder, ev){
-  if (!ev){
-    holder.innerHTML = `
-      <div class="time">—</div>
-      <div class="title">Sin eventos</div>
-      <div class="place">&nbsp;</div>`;
-    return;
-  }
-  const df = parseDescFields(ev.desc);
-  const pinUrl = firstUrl(ev.url, ev.location);
-  const isTemplo = isTemple(ev.location) || (!pinUrl && isTemple(ev.summary));
-  const showQr = !!pinUrl && !isTemplo;
-
-  const end = ev.end ? ' – '+hm(ev.end) : '';
-  const place = showQr ? 'Pin disponible (escanea el QR)' : (ev.location || (isTemplo?'Templo':''));
-
-  const pre = df.preacher ? `\nPredicador: ${df.preacher}` : '';
-  const man = df.manager  ? `\nEncargado: ${df.manager}`  : '';
-  const extra = (df.rest||[]).join(' · ');
-
-  holder.innerHTML = `
-    <div class="time">${ev.start ? hm(ev.start) : ''}${end}</div>
-    <div class="title">${ev.summary || 'Evento'}</div>
-    <div class="place">${place}</div>
-    <div class="extra">${(extra || '').trim()}${pre}${man}</div>
-    ${showQr ? `<div class="qr"><img src="${qrFor(pinUrl)}" alt="QR"></div>` : ''}`;
-}
-function renderThree(dayCenter){
-  const {days} = state.week;
-  const i = days.findIndex(d => sameDay(d, dayCenter));
-  const leftD  = days[(i-1+7)%7];
-  const rightD = days[(i+1)%7];
-
-  const centerItems = dayItems(dayCenter);
-  const total = centerItems.length || 1;
-  const evC = centerItems.length ? centerItems[state.evIdx % total] : null;
-
-  const leftItems  = dayItems(leftD);
-  const rightItems = dayItems(rightD);
-  const evL = leftItems[0] || null;
-  const evR = rightItems[0] || null;
-
-  renderEventCard(document.getElementById('centerCard'), evC);
-  renderEventCard(document.getElementById('leftCard'),  evL);
-  renderEventCard(document.getElementById('rightCard'), evR);
-}
-function renderStage(){
-  renderClock(); renderHeader();
-  const stage = state.seq[state.seqIdx % state.seq.length];
-  if (stage.type === 'banner'){
-    renderBanner(document.getElementById('centerCard'), stage.url);
-    document.getElementById('leftCard').innerHTML  = '';
-    document.getElementById('rightCard').innerHTML = '';
-    return;
-  }
-  if (stage.type === 'text'){
-    renderText(document.getElementById('centerCard'), stage.text);
-    document.getElementById('leftCard').innerHTML  = '';
-    document.getElementById('rightCard').innerHTML = '';
-    return;
-  }
-  if (stage.type === 'day'){
-    const day = state.week.days[stage.offset];
-    renderThree(day);
-  }
-}
-function nextStage(){
-  const stage = state.seq[state.seqIdx % state.seq.length];
-  if (stage.type === 'day'){
-    const items = dayItems(state.week.days[stage.offset]);
-    if (items.length > 1 && state.evIdx < items.length-1){
-      state.evIdx++;
-      renderStage();
-      return;
-    }
-    state.evIdx = 0;
-  }
-  state.seqIdx = (state.seqIdx + 1) % state.seq.length;
-  renderStage();
-}
-
-/* ========= Sleep ========= */
-function hhmmToDateToday(hhmm){
-  if(!hhmm) return null;
-  const [H,M] = hhmm.split(':').map(n=>parseInt(n,10));
-  const d = toTZ(new Date());
-  d.setHours(H, M || 0, 0, 0);
-  return d;
-}
-function isInRestWindow(now){
-  if (!C.rest?.enabled) return false;
-  const s = hhmmToDateToday(C.rest.start || '23:00');
-  const e = hhmmToDateToday(C.rest.end   || '06:00');
-  if(!s || !e) return false;
-  if (s <= e){ return (now >= s && now < e); } // misma noche
-  return (now >= s || now < e);                // cruza medianoche
-}
-function updateSleep(){
-  const ov = document.getElementById('sleepOverlay');
-  document.getElementById('sleepClock').textContent = fmtTime.format(toTZ(new Date()));
-  const rest = isInRestWindow(toTZ(new Date()));
-  ov.style.display = rest ? 'flex' : 'none';
-  return rest;
-}
-
-/* ========= ICS/Poll/Boot ========= */
-async function loadICS(){
-  const base = (C.icsUrl || (location.origin + '/calendarios/calendario.ics'));
-  const url = base + (/\?/.test(base)?'&':'?') + 't=' + Date.now();
-  const r = await fetch(url, {cache:'no-store'});
-  if(!r.ok) throw new Error('HTTP '+r.status);
-  const txt = await r.text();
-  return parseICS(txt);
-}
-function rebuildWeek(){
-  state.week = groupByWeek(state.allEvents, new Date());
-  buildSequence();
-  state.seqIdx = 0;
-  state.evIdx  = 0;
-  renderStage();
-}
-
-(async function boot(){
-  try{ state.allEvents = await loadICS(); }catch{ state.allEvents = []; }
-  rebuildWeek();
-
-  clearInterval(state.timer);
-  state.timer = setInterval(()=>{ if(!updateSleep()) nextStage(); }, C.slideMs || 12000);
-
-  setInterval(()=>{ renderClock(); updateSleep(); }, 1000);
-
-  setInterval(async ()=>{
-    try{
-      const before = JSON.stringify(state.allEvents);
-      const fresh  = await loadICS();
-      const after  = JSON.stringify(fresh);
-      if (before !== after){ state.allEvents = fresh; rebuildWeek(); }
-    }catch(e){ /* mantener estado */ }
-  }, C.pollMs || 300000);
-
-  // cambio automático de semana (domingo 00:00)
-  setInterval(()=>{
-    const now = toTZ(new Date());
-    const startWeekNow   = weekFrom(now).sun.getTime();
-    const startWeekState = state.week.sun.getTime();
-    if (startWeekNow !== startWeekState) rebuildWeek();
-  }, 60000);
-})();
-</script>
+  <script src="js/main.js"></script>
 </body>
 </html>
