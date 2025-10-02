@@ -100,7 +100,9 @@
       const mm = C.fieldsFromDescription?.manager && ln.match(C.fieldsFromDescription.manager);
       if(mm && !out.manager) out.manager = (mm[2]||'').trim();
     }
-  
+  out.extra = lines.filter(ln=>!/(predicador|predica|encargad[oa])\s*:/i.test(ln));
+    return out;
+  }
   const hasPin = (ev)=> /^https?:\/\//i.test(ev.url||'') || /^https?:\/\//i.test(ev.location||'');
   const isTemple = (txt)=> !!txt && (C.templeKeywords||[]).some(k => String(txt).toLowerCase().includes(k.toLowerCase()));
   const hm = d => fmtHm.format(toTZ(d)).toLowerCase().replace(/\s/g,'').replace('a. m.','am').replace('p. m.','pm');
