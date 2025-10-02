@@ -1,79 +1,88 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Cartelera semanal</title>
+  <meta charset="utf-8" />
+  <title>Cartelera semanal PIPJM</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<!-- Config externo -->
-<script src="config/config.js"></script>
+  <!-- Config externo -->
+  <script src="./config/config.js"></script>
 
-<style>
-  :root{
-    --bg:#0b1421; --card:#0f1b2c; --text:#e6eefc; --muted:#93a4bf; --accent:#16a34a; --warn:#ef4444;
-    --fs:22px; --fs-h1:42px; --fs-h2:28px; --clock:64px;
-    --shadow: 0 20px 50px rgba(0,0,0,.35);
-    --radius: 18px;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0; background:var(--bg); color:var(--text);
-    font:500 var(--fs)/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial;
-    display:flex; flex-direction:column; align-items:center;
-  }
-  .wrap{width:min(1400px,96vw); margin:auto; padding:18px}
-  .top{display:flex; flex-direction:column; align-items:center; gap:6px; margin:6px 0 16px}
-  .clockRow{display:flex; align-items:baseline; gap:12px}
-  .dot{width:10px;height:10px;border-radius:999px;background:var(--accent);display:inline-block}
-  .clock{font-size:var(--clock); font-weight:900; letter-spacing:.3px}
-  h1{margin:0; font-size:var(--fs-h1); font-weight:800}
-  .range{color:var(--muted)}
-  .lane{
-    display:grid; gap:18px;
-    grid-template-columns: 1fr 1fr 1fr;
-    align-items:stretch;
-  }
-  .card{
-    background:var(--card); border:1px solid rgba(255,255,255,.06);
-    border-radius:var(--radius); box-shadow:var(--shadow);
-    padding:18px; min-height:62vh; display:flex; flex-direction:column; justify-content:center;
-  }
-  .center{ text-align:center }
-  .title{font-weight:900; font-size:calc(var(--fs-h1) - 2px); margin:0 0 6px}
-  .muted{color:var(--muted)}
-  .tag{display:inline-block; padding:4px 10px; border-radius:999px; background:#122742; color:#cfe0ff; font-weight:800; font-size:16px}
-  .evlist{display:grid; gap:10px; margin-top:8px}
-  .ev{border:1px solid rgba(255,255,255,.07); border-radius:12px; padding:12px}
-  .row{display:grid; grid-template-columns: 1fr auto; gap:12px; align-items:center}
-  .time{font-weight:800}
-  .qr{width:160px; height:160px; background:#fff; border-radius:12px; display:flex; align-items:center; justify-content:center; overflow:hidden}
-  .qr img{max-width:100%; max-height:100%}
-  .subtitle{font-weight:700; font-size:var(--fs-h2); margin:.2em 0 .4em}
-</style>
+  <style>
+    :root{
+      --bg:#0b1421; --card:#0f1b2c; --text:#e6eefc; --muted:#93a4bf; --accent:#16a34a; --warn:#ef4444;
+      --h1:40px; --h2:26px; --fs:20px; --clock:54px; --radius:18px; --shadow:0 20px 60px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font:500 var(--fs)/1.35 system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      color:var(--text); background:var(--bg);
+      display:flex; align-items:stretch; justify-content:center;
+    }
+    .wrap{width:min(1400px,96vw); margin:auto; padding:20px 18px}
+    .top{
+      display:grid; grid-template-columns: 1fr; gap:8px; margin-bottom:16px;
+      align-items:end;
+    }
+    .clock{
+      display:flex; gap:12px; align-items:baseline; flex-wrap:wrap;
+    }
+    .clock .now{font-size:var(--clock); font-weight:800; letter-spacing:.5px}
+    .clock .weekTitle{font-size:var(--h1); font-weight:900}
+    .clock .range{color:var(--muted); font-size:calc(var(--fs) + 2px); font-weight:700}
+    .board{
+      display:grid; gap:16px;
+      grid-template-columns: 1fr 1.2fr 1fr; /* izquierda | centro | derecha */
+      align-items:stretch;
+    }
+    .card{
+      background:var(--card); border:1px solid rgba(255,255,255,.06);
+      border-radius:var(--radius); padding:16px; box-shadow:var(--shadow);
+      display:flex; flex-direction:column; gap:12px; min-height:62vh;
+    }
+    .card .date{font-weight:900; font-size:var(--h2)}
+    .card .title{font-weight:800; font-size:calc(var(--fs) + 6px)}
+    .muted{color:var(--muted)}
+    .row{display:grid; grid-template-columns: 1fr auto; gap:14px; align-items:start}
+    .row.noqr{grid-template-columns: 1fr;}
+    .tag{display:inline-block; padding:5px 10px; border-radius:999px; background:#122742; color:#cfe0ff; font-weight:800}
+    .qrwrap{display:flex; align-items:center; justify-content:center; background:#0a1425; border-radius:12px; padding:8px}
+    .qrwrap img{display:block; max-width:100%; height:auto}
+    .qrlabel{font-weight:800; margin-bottom:6px}
+    .hr{height:1px; background:rgba(255,255,255,.08); margin:6px 0}
+    .centerBanner{display:flex; align-items:center; justify-content:center; height:100%}
+    .centerBanner img{max-width:100%; max-height:60vh; border-radius:12px; box-shadow:var(--shadow)}
+    .centerText{display:flex; align-items:center; justify-content:center; height:100%; text-align:center; padding:18px}
+    .centerText .big{font-weight:900; font-size:calc(var(--h1) + 4px)}
+    .status{position:fixed; left:10px; bottom:10px; font:600 12px system-ui; color:#9fb3d4}
+    @media (max-width:1100px){
+      .board{grid-template-columns: 1fr;}
+      .card{min-height:48vh}
+    }
+  </style>
 </head>
 <body>
   <div class="wrap">
-
-    <!-- Encabezado -->
     <div class="top">
-      <div class="clockRow">
-        <span class="dot"></span>
-        <div id="now" class="clock">--:--</div>
+      <div class="clock">
+        <div class="now" id="clockNow">--:--</div>
       </div>
-      <h1>Calendario de la semana</h1>
-      <div id="weekRange" class="range">—</div>
+      <div class="clock">
+        <div class="weekTitle">Calendario de la semana</div>
+      </div>
+      <div class="clock">
+        <div class="range" id="weekRange">—</div>
+      </div>
     </div>
 
-    <!-- Tres tarjetas -->
-    <div class="lane">
-      <div id="cardPrev" class="card"></div>
-      <div id="cardCurr" class="card"></div>
-      <div id="cardNext" class="card"></div>
+    <div class="board" id="board">
+      <!-- Se renderizan 3 tarjetas: prev | current | next -->
     </div>
-
   </div>
 
-  <script src="js/main.js"></script>
+  <div class="status" id="status">ICS…</div>
+
+  <script src="./js/main.js"></script>
 </body>
 </html>
