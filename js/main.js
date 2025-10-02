@@ -1,203 +1,253 @@
-/* ===============================
-   Monitor Cartelera Semanal PIPJM
-   =============================== */
-const C = window.CARTELERA_CONFIG;
+(function () {
+  const C = window.CARTELERA_CONFIG || {};
+  // === Tema desde config
+  (function applyTheme(){
+    const r = document.documentElement;
+    r.style.setProperty('--bg', C.theme?.bg || '#0b1421');
+    r.style.setProperty('--card', C.theme?.card || '#0f1b2c');
+    r.style.setProperty('--text', C.theme?.text || '#e6eefc');
+    r.style.setProperty('--muted', C.theme?.muted || '#93a4bf');
+    r.style.setProperty('--accent', C.theme?.accent || '#16a34a');
+    r.style.setProperty('--warn', C.theme?.warn || '#ef4444');
+    r.style.setProperty('--fs', (C.theme?.base||22)+'px');
+    r.style.setProperty('--fs-h1', (C.theme?.h1||42)+'px');
+    r.style.setProperty('--fs-h2', (C.theme?.h2||28)+'px');
+    r.style.setProperty('--clock', (C.theme?.clock||64)+'px');
+  })();
 
-/* ======== Helpers ======== */
-function applyTheme(){
-  const r = document.documentElement;
-  r.style.setProperty('--bg', C.theme.bg);
-  r.style.setProperty('--card', C.theme.card);
-  r.style.setProperty('--text', C.theme.text);
-  r.style.setProperty('--muted', C.theme.muted);
-  r.style.setProperty('--accent', C.theme.accent);
-  r.style.setProperty('--warn', C.theme.warn);
-}
-applyTheme();
+  // === Helpers de fechas
+  const fmtClock  = new Intl.DateTimeFormat('es-PR',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:C.timeZone});
+  const fmtDay    = new Intl.DateTimeFormat('es-PR',{weekday:'long',day:'2-digit',month:'long',year:'numeric',timeZone:C.timeZone});
+  const fmtShort  = new Intl.DateTimeFormat('es-PR',{day:'2-digit',month:'long',year:'numeric',timeZone:C.timeZone});
+  const fmtHm     = new Intl.DateTimeFormat('es-PR',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:C.timeZone});
+  const toTZ = d => new Date(d.toLocaleString('en-US',{timeZone:C.timeZone}));
+  const startOfDay = d => (d=new Date(d), d.setHours(0,0,0,0), d);
+  const addDays = (d,n)=> (d=new Date(d), d.setDate(d.getDate()+n), d);
+  const sameDay = (a,b)=>{a=toTZ(a);b=toTZ(b);return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()};
+  const cap1 = s => s ? s.charAt(0).toUpperCase()+s.slice(1) : s;
 
-const fmt = new Intl.DateTimeFormat('es-PR',{weekday:'long', day:'2-digit', month:'long', year:'numeric', timeZone:C.timeZone});
-const fmtTime = new Intl.DateTimeFormat('es-PR',{hour:'numeric', minute:'2-digit', hour12:true, timeZone:C.timeZone});
-const toTZ = d => new Date(d.toLocaleString('en-US',{timeZone:C.timeZone}));
-const startOfDay = d => (d=new Date(d), d.setHours(0,0,0,0), d);
-const addDays = (d,n)=> (d=new Date(d), d.setDate(d.getDate()+n), d);
-const sameDay = (a,b)=>{a=toTZ(a);b=toTZ(b);return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()};
-const unfold = txt => txt.replace(/(?:\r\n|\n)[ \t]/g,'');
-
-function hm(d){
-  return fmtTime.format(toTZ(d)).toLowerCase()
-    .replace(/\s/g,'').replace('a. m.','am').replace('p. m.','pm');
-}
-function dateLong(d){ const s = fmt.format(toTZ(d)); return s.charAt(0).toUpperCase()+s.slice(1); }
-
-function qrFor(url){
-  if(!url) return '';
-  const u = encodeURIComponent(url);
-  return `https://api.qrserver.com/v1/create-qr-code/?size=${C.qrSize}x${C.qrSize}&data=${u}`;
-}
-function firstUrl(...vals){
-  for(const v of vals){
-    if (v && /^https?:\/\//i.test(v)) return v;
+  // === Reloj + rango
+  function paintClock(){
+    document.getElementById('now').textContent =
+      fmtClock.format(toTZ(new Date())).toLowerCase().replace(/\s/g,'').replace('a. m.',' a. m.').replace('p. m.',' p. m.');
   }
-  return '';
-}
+  function paintWeekRange(week){
+    const s = fmtShort.format(week.days[0]);
+    const e = fmtShort.format(week.days[6]);
+    document.getElementById('weekRange').textContent = `${cap1(s)} / ${cap1(e)}`;
+  }
 
-/* ======== ICS Parser ======== */
-function parseICS(txt){
-  txt = unfold(txt);
-  const blocks = txt.split(/BEGIN:VEVENT/).slice(1).map(b=>'BEGIN:VEVENT'+b.split('END:VEVENT')[0]);
-  const out = [];
-  for(const b of blocks){
-    const get = (k)=>{ const m=b.match(new RegExp('^'+k+'(?:;[^:\\n]*)?:(.*)$','mi')); return m?m[1].trim():''; };
-    const when = (()=>{ 
-      const m = b.match(/^DTSTART([^:\n]*)?:([^\n]+)$/mi); if(!m) return null;
+  // === ICS
+  const unfold = txt => txt.replace(/(?:\r\n|\n)[ \t]/g,'');
+  function parseICS(txt){
+    txt = unfold(txt);
+    const blocks = txt.split(/BEGIN:VEVENT/).slice(1).map(b=>'BEGIN:VEVENT'+b.split('END:VEVENT')[0]);
+    const out = [];
+    for(const b of blocks){
+      const get = (k)=>{ const m=b.match(new RegExp('^'+k+'(?:;[^:\\n]*)?:(.*)$','mi')); return m?m[1].trim():''; };
+      const m = b.match(/^DTSTART([^:\n]*)?:([^\n]+)$/mi); if(!m) continue;
       const p=(m[1]||'').toUpperCase(); const v=m[2].trim();
       const dOnly=v.match(/^(\d{4})(\d{2})(\d{2})$/);
       const dt=v.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z)?$/);
-      const toDt = (Y,M,D,hh,mm,ss, z)=> z ? new Date(Date.UTC(+Y,+M-1,+D,+hh,+mm,+ss))
-                                           : new Date(Date.UTC(+Y,+M-1,+D,+hh+4,+mm,+ss));
-      if(/VALUE=DATE/.test(p) && dOnly){ const [_,Y,M,D]=dOnly; return {start:new Date(Date.UTC(+Y,+M-1,+D,4,0,0)), end:null}; }
-      if(dt){ const [_,Y,M,D,hh,mm,ss,Z]=dt; return {start:toDt(Y,M,D,hh,mm,ss,Z), end:null}; }
-      if(dOnly){ const [_,Y,M,D]=dOnly; return {start:new Date(Date.UTC(+Y,+M-1,+D,4,0,0)), end:null}; }
-      return null;
-    })();
-    if(!when) continue;
-    out.push({
-      start: when.start,
-      summary: get('SUMMARY'),
-      location: get('LOCATION'),
-      url: get('URL'),
-      desc: get('DESCRIPTION')
-    });
-  }
-  out.sort((a,b)=> a.start - b.start);
-  return out;
-}
+      let start=null;
+      if(/VALUE=DATE/.test(p) && dOnly){ const [_,Y,M,D]=dOnly; start=new Date(Date.UTC(+Y,+M-1,+D,4,0,0)); }
+      else if(dt){ const [_,Y,M,D,hh,mm,ss,Z]=dt; start=Z?new Date(Date.UTC(+Y,+M-1,+D,+hh,+mm,+ss)):new Date(Date.UTC(+Y,+M-1,+D,+hh+4,+mm,+ss)); }
+      else if(dOnly){ const [_,Y,M,D]=dOnly; start=new Date(Date.UTC(+Y,+M-1,+D,4,0,0)); }
+      if(!start) continue;
 
-function groupByDayWeek(events, baseDate){
-  const pr = toTZ(baseDate);
-  const sun = startOfDay(addDays(pr, -pr.getDay())); // domingo
-  const weekDays = [...Array(7)].map((_,i)=> addDays(sun,i));
-  const map = new Map(weekDays.map(d=>[startOfDay(d).getTime(), []]));
-  for(const ev of events){
-    for(const d of weekDays){
-      if (sameDay(ev.start, d)){ map.get(startOfDay(d).getTime()).push(ev); break; }
+      let end=null;
+      const mend=b.match(/^DTEND[^:]*:([^\n]+)$/mi);
+      if(mend){
+        const vv=mend[1].trim();
+        const dt2=vv.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})(Z)?$/);
+        const d2=vv.match(/^(\d{4})(\d{2})(\d{2})$/);
+        if(dt2){ const [_,Y,M,D,hh,mm,ss,Z]=dt2; end=Z?new Date(Date.UTC(+Y,+M-1,+D,+hh,+mm,+ss)):new Date(Date.UTC(+Y,+M-1,+D,+hh+4,+mm,+ss)); }
+        else if(d2){ const [_,Y,M,D]=d2; end=new Date(Date.UTC(+Y,+M-1,+D,4,0,0)); }
+      }
+
+      out.push({
+        start, end,
+        summary:  get('SUMMARY'),
+        location: get('LOCATION'),
+        url:      get('URL'),
+        desc:     get('DESCRIPTION')
+      });
     }
+    out.sort((a,b)=> a.start - b.start);
+    return out;
   }
-  return {sun, days: weekDays, map};
-}
 
-/* ======== Estado ======== */
-let state = {
-  allEvents: [],
-  week: null,
-  stageSeq: [],
-  stageIdx: 0,
-  evIdx: 0
-};
-
-function buildStageSequence(){
-  const seq = [];
-  if (C.intro.bannerUrl) seq.push({type:'banner', url:C.intro.bannerUrl});
-  if (C.intro.text)      seq.push({type:'text', text:C.intro.text});
-  for (let i=0;i<7;i++) seq.push({type:'day', dayOffset:i});
-  if (C.outro.bannerUrl) seq.push({type:'banner', url:C.outro.bannerUrl});
-  if (C.outro.text)      seq.push({type:'text', text:C.outro.text});
-  state.stageSeq = seq;
-  state.stageIdx = 0;
-}
-
-/* ======== Render ======== */
-function renderClock(){
-  const now = new Date();
-  document.getElementById('now').textContent = fmtTime.format(toTZ(now));
-  document.getElementById('date').textContent= dateLong(now);
-}
-
-function paintStage(){
-  renderClock();
-
-  // Sleep mode
-  if(C.rest.enabled){
-    const now = toTZ(new Date());
-    const [sH,sM] = C.rest.start.split(':').map(Number);
-    const [eH,eM] = C.rest.end.split(':').map(Number);
-    const start = new Date(now); start.setHours(sH,sM,0,0);
-    const end   = new Date(now); end.setHours(eH,eM,0,0);
-    const inSleep = (start<end) ? (now>=start && now<end)
-                                : (now>=start || now<end);
-    if(inSleep){
-      document.getElementById('stage').innerHTML = `
-        <div class="banner"><div style="text-align:center;font-size:36px">⏸️ Monitor en descanso<br>${C.rest.start} – ${C.rest.end}</div></div>`;
-      document.getElementById('list').innerHTML='';
-      return;
+  function groupByWeek(events, baseDate){
+    const pr = toTZ(baseDate);
+    const sun = startOfDay(addDays(pr,-pr.getDay()));
+    const days = [...Array(7)].map((_,i)=> addDays(sun,i));
+    const map = new Map(days.map(d=>[startOfDay(d).getTime(), []]));
+    for(const ev of events){
+      for(const d of days){ if(sameDay(ev.start,d)){ map.get(startOfDay(d).getTime()).push(ev); break; } }
     }
+    for(const [k,list] of map){ list.sort((a,b)=> a.start-b.start); }
+    return {sun, days, map};
   }
 
-  const stage = state.stageSeq[state.stageIdx % state.stageSeq.length];
-  const holder = document.getElementById('stage');
-
-  if (stage.type==='banner'){
-    holder.innerHTML = `<div class="banner"><img src="${stage.url}" /></div>`;
-    return;
-  }
-  if (stage.type==='text'){
-    holder.innerHTML = `<div class="center" style="height:62vh"><div class="titleCenter">${stage.text}</div></div>`;
-    return;
-  }
-  if (stage.type==='day'){
-    const day = state.week.days[stage.dayOffset];
-    const list = state.week.map.get(startOfDay(day).getTime()) || [];
-    if(!list.length){
-      holder.innerHTML = `<h1>${dateLong(day)}</h1><div>Sin eventos</div>`;
-      return;
+  // === “Campos” desde DESCRIPTION
+  function parseDescFields(desc){
+    const out = { preacher:'', manager:'', extra:[] };
+    if(!desc) return out;
+    const lines = String(desc).split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+    for(const ln of lines){
+      const mp = C.fieldsFromDescription?.preacher && ln.match(C.fieldsFromDescription.preacher);
+      if(mp && !out.preacher) out.preacher = (mp[2]||'').trim();
+      const mm = C.fieldsFromDescription?.manager && ln.match(C.fieldsFromDescription.manager);
+      if(mm && !out.manager) out.manager = (mm[2]||'').trim();
     }
-    const ev = list[state.evIdx % list.length];
-    const pin = firstUrl(ev.url, ev.location);
-    holder.innerHTML = `
-      <h1>${dateLong(day)}</h1>
-      <div class="ev">
-        <div class="time">${hm(ev.start)}</div>
-        <h2>${ev.summary}</h2>
-        <div>${ev.location||''}</div>
-        ${pin? `<div class="qr"><img src="${qrFor(pin)}"/></div>`:''}
-      </div>`;
+    out.extra = lines.filter(ln=>!/(predicador|predica|encargad[oa])\s*:/i.test(ln));
+    return out;
   }
-}
+  const hasPin = (ev)=> /^https?:\/\//i.test(ev.url||'') || /^https?:\/\//i.test(ev.location||'');
+  const isTemple = (txt)=> !!txt && (C.templeKeywords||[]).some(k => String(txt).toLowerCase().includes(k.toLowerCase()));
+  const hm = d => fmtHm.format(toTZ(d)).toLowerCase().replace(/\s/g,'').replace('a. m.','am').replace('p. m.','pm');
+  const qrFor = (url)=> `https://api.qrserver.com/v1/create-qr-code/?size=${C.qrSize||180}x${C.qrSize||180}&data=${encodeURIComponent(url)}`;
 
-function advance(){
-  const stage = state.stageSeq[state.stageIdx % state.stageSeq.length];
-  if(stage.type==='day'){
-    const day = state.week.days[stage.dayOffset];
-    const list = state.week.map.get(startOfDay(day).getTime()) || [];
-    if(list.length && state.evIdx < list.length-1){
-      state.evIdx++;
-      paintStage();
-      return;
+  // === Render de tarjetas
+  function bannerCard(url, text){
+    if(url) return `<div class="center"><img src="${url}" alt="Banner" style="max-width:100%;max-height:50vh;border-radius:14px;box-shadow:var(--shadow)"/></div>`;
+    return `<div class="center">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div class="title center">${text||''}</div>
+                <div class="muted center" id="rangeCopy"></div>
+              </div>
+            </div>`;
+  }
+
+  function dayCard(day, list){
+    const title = cap1(fmtDay.format(day));
+    if(!list || !list.length){
+      return `
+        <div>
+          <div class="subtitle">${title}</div>
+          <div class="muted">Sin eventos</div>
+        </div>`;
     }
-    state.evIdx=0;
-  }
-  state.stageIdx = (state.stageIdx+1)%state.stageSeq.length;
-  paintStage();
-}
+    // lista completa de eventos del día en UNA tarjeta
+    const items = list.map(ev=>{
+      const df = parseDescFields(ev.desc);
+      const pinUrl = hasPin(ev) ? ( /^https?:\/\//i.test(ev.url||'') ? ev.url : ev.location ) : '';
+      const showQr = pinUrl && !isTemple(ev.location||'');
+      const end = ev.end ? ` – ${hm(ev.end)}` : '';
+      const where = showQr ? 'Pin disponible (escanea el QR)' : (ev.location||'');
+      const ext  = df.extra && df.extra.length ? `<div class="muted">${df.extra.join(' · ')}</div>` : '';
+      const pre  = df.preacher ? `<div class="muted">Predicador: ${df.preacher}</div>` : '';
+      const man  = df.manager  ? `<div class="muted">Encargado: ${df.manager}</div>`  : '';
+      return `
+        <div class="ev">
+          <div class="row">
+            <div>
+              <div class="time tag">${ev.start ? hm(ev.start) : ''}${end}</div>
+              <div style="font-weight:800; margin-top:6px">${ev.summary||'Evento'}</div>
+              ${where?`<div class="muted">${where}</div>`:''}
+              ${pre}${man}${ext}
+              ${pinUrl?`<div class="muted" style="margin-top:6px;word-break:break-all">${pinUrl}</div>`:''}
+            </div>
+            <div class="qr">${ (pinUrl && !isTemple(ev.location||'')) ? `<img alt="QR" src="${qrFor(pinUrl)}">` : '' }</div>
+          </div>
+        </div>`;
+    }).join('\n');
 
-/* ======== Boot ======== */
-async function loadICS(){
-  const url = C.icsUrl + (C.icsUrl.includes('?')?'&':'?')+'t='+Date.now();
-  try{
-    const r = await fetch(url,{cache:'no-store'});
+    return `<div>
+              <div class="subtitle">${title}</div>
+              <div class="evlist">${items}</div>
+            </div>`;
+  }
+
+  // === Secuencia (intro → 7 días → outro)
+  function buildSequence(week){
+    const seq = [];
+    if (C.intro?.bannerUrl || C.intro?.text) seq.push({type:'intro'});
+    for(let i=0;i<7;i++) seq.push({type:'day', offset:i});
+    if (C.outro?.bannerUrl || C.outro?.text) seq.push({type:'outro'});
+    return seq;
+  }
+
+  // === Estado
+  const S = { events:[], week:null, seq:[], idx:0, timer:null };
+
+  async function loadICS(){
+    const url = (C.icsUrl||'calendarios/calendario.ics') + (/\?/.test(C.icsUrl)?'&':'?') + 't=' + Date.now();
+    const r = await fetch(url, {cache:'no-store'});
     if(!r.ok) throw new Error('HTTP '+r.status);
     const txt = await r.text();
-    state.allEvents=parseICS(txt);
-  }catch(e){ console.error(e); }
-}
+    return parseICS(txt);
+  }
 
-async function boot(){
-  await loadICS();
-  state.week=groupByDayWeek(state.allEvents,new Date());
-  buildStageSequence();
-  paintStage();
-  setInterval(advance,C.slideMs);
-  setInterval(()=>paintStage(),1000);
-  setInterval(loadICS,C.pollMs);
-}
-boot();
+  function renderAll(){
+    paintClock();
+
+    const prevEl = document.getElementById('cardPrev');
+    const currEl = document.getElementById('cardCurr');
+    const nextEl = document.getElementById('cardNext');
+
+    const seq = S.seq;
+    const i   = S.idx % seq.length;
+    const iL  = (i-1+seq.length)%seq.length;
+    const iR  = (i+1)%seq.length;
+
+    function renderPos(posIdx){
+      const st = seq[posIdx];
+      if(st.type==='intro'){ return bannerCard(C.intro.bannerUrl, C.intro.text); }
+      if(st.type==='outro'){ return bannerCard(C.outro.bannerUrl, C.outro.text); }
+      // día
+      const day = S.week.days[st.offset];
+      const list = S.week.map.get(startOfDay(day).getTime()) || [];
+      return dayCard(day, list);
+    }
+
+    prevEl.innerHTML = renderPos(iL);
+    currEl.innerHTML = renderPos(i);
+    nextEl.innerHTML = renderPos(iR);
+
+    // si la tarjeta central es “intro/outro” sin banner, completar rango debajo del texto
+    const rc = document.querySelector('#cardCurr #rangeCopy');
+    if (rc){
+      const s = S.week.days[0], e = S.week.days[6];
+      rc.textContent = `${cap1(fmtShort.format(s))} / ${cap1(fmtShort.format(e))}`;
+    }
+  }
+
+  function advance(){
+    S.idx = (S.idx + 1) % S.seq.length;
+    renderAll();
+  }
+
+  async function boot(){
+    try{
+      S.events = await loadICS();
+    }catch{ S.events = []; }
+    S.week = groupByWeek(S.events, new Date());
+    paintWeekRange(S.week);
+    S.seq = buildSequence(S.week);
+    S.idx = 0;
+    renderAll();
+
+    clearInterval(S.timer);
+    S.timer = setInterval(advance, C.slideMs||12000);
+
+    setInterval(paintClock, 1000);
+
+    // polling ICS
+    setInterval(async ()=>{
+      let next = [];
+      try{ next = await loadICS(); }catch{}
+      if(JSON.stringify(next.map(e=>[e.start?.toISOString(),e.end?.toISOString(),e.summary,e.location,e.url])) !==
+         JSON.stringify(S.events.map(e=>[e.start?.toISOString(),e.end?.toISOString(),e.summary,e.location,e.url]))){
+        S.events = next;
+        S.week = groupByWeek(S.events, new Date());
+        paintWeekRange(S.week);
+        S.seq = buildSequence(S.week);
+        S.idx = 0;
+        renderAll();
+      }
+    }, C.pollMs||300000);
+  }
+
+  boot();
+})();
