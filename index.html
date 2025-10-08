@@ -18,88 +18,100 @@
     body{
       margin:0; font:500 var(--fs)/1.35 system-ui,-apple-system,Segoe UI,Roboto,Arial;
       color:var(--text); background:var(--bg);
-      display:flex; align-items:stretch; justify-content:center;
+      display:flex; align-items:center; justify-content:center; flex-direction:column;
     }
-    .wrap{width:min(1400px,96vw); margin:auto; padding:20px 18px}
-    .top{display:grid; grid-template-columns: 1fr; gap:8px; margin-bottom:16px}
-    .clock{display:flex; gap:12px; align-items:baseline; flex-wrap:wrap}
-    .clock .now{font-size:var(--clock); font-weight:800; letter-spacing:.5px}
-    .clock .weekTitle{font-size:var(--h1); font-weight:900}
-    .clock .range{color:var(--muted); font-size:calc(var(--fs) + 2px); font-weight:700}
+
+    .top{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      gap:6px;
+      margin-bottom:20px;
+    }
+
+    .clock .now{
+      font-size:var(--clock);
+      font-weight:900;
+      text-align:center;
+    }
+
+    .clock .weekTitle{
+      font-size:calc(var(--h1) + 4px);
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:1px;
+      text-align:center;
+    }
+
+    .clock .range{
+      color:var(--muted);
+      font-size:calc(var(--fs) + 2px);
+      font-weight:700;
+      text-align:center;
+    }
 
     .board{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  height:70vh;           /* centrado vertical dentro del contenedor */
-  overflow:hidden;
-}
-
-.card{
-  background:var(--card);
-  border:1px solid rgba(255,255,255,.06);
-  border-radius:var(--radius);
-  padding:24px 28px;
-  box-shadow:var(--shadow);
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-  max-width:900px;       /* centrado más angosto */
-  width:100%;
-  max-height:60vh;       /* evita scroll en vertical */
-  overflow:hidden;       /* oculta contenido extra grande */
-  justify-content:center;
-}
-
-.card .qrwrap img{
-  max-height:120px;
-  width:auto;
-}
-    .card{
-      background:var(--card); border:1px solid rgba(255,255,255,.06);
-      border-radius:var(--radius); padding:16px; box-shadow:var(--shadow);
-      display:flex; flex-direction:column; gap:12px; min-height:62vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      height:70vh;
+      overflow:hidden;
     }
-    .date{font-weight:900; font-size:var(--h2)}
-    .title{font-weight:800; font-size:calc(var(--fs) + 6px)}
-    .muted{color:var(--muted)}
-    .hr{height:1px; background:rgba(255,255,255,.08); margin:8px 0}
 
-    .ev{display:flex; flex-direction:column; gap:10px}
-    .tag{display:inline-block; padding:6px 12px; border-radius:999px; background:#122742; color:#cfe0ff; font-weight:800}
-    .row{display:grid; grid-template-columns: 1fr auto; gap:14px; align-items:start}
-    .row.noqr{grid-template-columns: 1fr;}
-    .qrlabel{font-weight:800; margin-bottom:6px}
-    .qrwrap{display:flex; align-items:center; justify-content:center; background:#0a1425; border-radius:12px; padding:8px}
-    .qrwrap img{display:block; max-width:100%; height:auto}
+    .card{
+      background:var(--card);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:var(--radius);
+      padding:24px 28px;
+      box-shadow:var(--shadow);
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+      max-width:900px;
+      width:100%;
+      max-height:60vh;
+      overflow:hidden;
+      justify-content:center;
+      align-items:center;
+      opacity:0;
+      transition:opacity 0.8s ease;
+    }
 
-    .centerBanner{display:flex; align-items:center; justify-content:center; height:100%}
-    .centerBanner img{max-width:100%; max-height:60vh; border-radius:12px; box-shadow:var(--shadow)}
-    .centerText{display:flex; align-items:center; justify-content:center; height:100%; text-align:center; padding:18px}
-    .centerText .big{font-weight:900; font-size:calc(var(--h1) + 4px)}
+    .card.active{opacity:1;}
 
-    .status{position:fixed; left:10px; bottom:10px; font:600 12px system-ui; color:#9fb3d4}
+    .date{
+      font-size:calc(var(--h1) + 6px);
+      font-weight:900;
+      color:var(--accent);
+      text-align:center;
+    }
+
+    .title{
+      font-weight:800;
+      font-size:calc(var(--fs) + 6px);
+      text-align:center;
+    }
+
+    .muted{color:var(--muted); text-align:center;}
+    .tag{display:inline-block; padding:6px 12px; border-radius:999px; background:#122742; color:#cfe0ff; font-weight:800; text-align:center;}
+    .qrwrap{display:flex; align-items:center; justify-content:center; background:#0a1425; border-radius:12px; padding:8px; margin-top:8px;}
+    .qrwrap img{display:block; max-height:120px; width:auto;}
 
     @media (max-width:1100px){
-      .board{grid-template-columns: 1fr}
-      .card{min-height:48vh}
+      .card{max-height:55vh;}
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="top">
-      <div class="clock"><div class="now" id="clockNow">--:--</div></div>
-      <div class="clock"><div class="weekTitle">Calendario de la semana</div></div>
-      <div class="clock"><div class="range" id="weekRange">—</div></div>
-    </div>
-
-    <div class="board" id="board">
-      <!-- Se pintan 3 tarjetas: anterior | actual | siguiente -->
-    </div>
+  <div class="top">
+    <div class="clock"><div class="now" id="clockNow">--:--</div></div>
+    <div class="clock"><div class="weekTitle">Calendario de la semana</div></div>
+    <div class="clock"><div class="range" id="weekRange">—</div></div>
   </div>
 
-  <div class="status" id="status">ICS…</div>
+  <div class="board" id="board"></div>
 
   <script src="./js/main.js"></script>
 </body>
