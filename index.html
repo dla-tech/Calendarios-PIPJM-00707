@@ -13,38 +13,42 @@
       --radius:24px; --shadow:0 30px 80px rgba(0,0,0,.5);
     }
 
-    *{box-sizing:border-box; user-select:none;}
+    *{box-sizing:border-box;user-select:none;margin:0;padding:0;}
     html,body{
-      height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--text);
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      height:100%;width:100%;overflow:hidden;
+      background:var(--bg);color:var(--text);
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
     }
 
-    body{font-size:calc(1vw + 1vh);}
+    /* Escala general */
+    body{font-size:calc(0.8vw + 1vh);}
 
+    /* ======= Cabecera compacta ======= */
     .top{
       text-align:center;
-      display:flex;flex-direction:column;align-items:center;justify-content:center;
-      margin-bottom:2vh;
+      margin-top:1.5vh;
+      margin-bottom:1.5vh;
+      line-height:1.1;
     }
 
     #clockNow{
-      font-size:calc(5vw + 2vh);
+      font-size:calc(4vw + 1.5vh); /* un poco más pequeño */
       font-weight:900;
       letter-spacing:1px;
     }
     .weekTitle{
-      font-size:calc(3vw + 1vh);
+      font-size:calc(2.2vw + 0.8vh); /* más compacto */
       font-weight:900;
       text-transform:uppercase;
       letter-spacing:2px;
-      margin-top:0.5vh;
+      margin-top:0.3vh;
     }
     #weekRange{
       color:var(--muted);
-      font-size:calc(1.8vw + 1vh);
+      font-size:calc(1.4vw + 0.6vh); /* más pequeño */
       font-weight:700;
-      margin-top:0.5vh;
+      margin-top:0.3vh;
     }
 
     /* ======= Contenedor principal ======= */
@@ -54,7 +58,7 @@
       align-items:center;
       justify-content:center;
       width:100%;
-      height:70%;
+      height:calc(100vh - 20vh); /* más área para evento */
     }
 
     .card{
@@ -63,8 +67,7 @@
       border-radius:var(--radius);
       box-shadow:var(--shadow);
       width:85vw;
-      height:65vh;
-      padding:3vw;
+      height:72vh; /* más alto */
       display:flex;
       flex-direction:column;
       justify-content:flex-start;
@@ -72,47 +75,87 @@
       text-align:center;
       transition:opacity 0.8s ease;
       opacity:0;
-      gap:1.8vh;
+      padding:3vw 2vw;
+      overflow:hidden;
     }
     .card.active{opacity:1;}
 
+    /* === Texto adaptativo === */
+    .text-area{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      width:100%;
+      overflow:hidden;
+      padding:0 2vw;
+    }
+
     .date{
-      font-size:calc(3.2vw + 1vh);
+      font-size:calc(3vw + 1vh);
       font-weight:900;
       color:var(--accent);
-      margin-bottom:1vh;
-    }
-    .title{
-      font-size:calc(2.6vw + 1vh);
-      font-weight:900;
-      line-height:1.2;
-    }
-    .muted{
-      font-size:calc(1.5vw + 0.6vh);
-      color:var(--muted);
-      font-weight:600;
-      line-height:1.3;
+      margin-bottom:1.3vh;
+      flex-shrink:0;
     }
     .tag{
       display:inline-block;
       background:#122742;
       color:#cfe0ff;
       border-radius:999px;
-      padding:0.6em 1.2em;
-      font-size:calc(1.8vw + 0.5vh);
+      padding:0.3em 0.9em;
+      font-size:calc(1.7vw + 0.4vh);
       font-weight:800;
-      margin:0.8vh 0 1.6vh;
+      margin-bottom:1.3vh;
+      flex-shrink:0;
+    }
+
+    .text-wrapper{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      flex:1;
+      width:100%;
+      max-height:38vh; /* más espacio */
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .text-wrapper > *{
+      margin:0.3vh 0;
+      transition:font-size .3s ease;
+    }
+
+    .title{
+      font-size:calc(2.6vw + 1vh);
+      font-weight:900;
+      line-height:1.25;
+      word-wrap:break-word;
+    }
+    .muted{
+      color:var(--muted);
+      font-weight:600;
+      font-size:calc(1.5vw + 0.4vh);
+      line-height:1.25;
+      word-wrap:break-word;
+    }
+
+    @supports (-webkit-line-clamp:2){
+      .text-wrapper.long .title{font-size:calc(2vw + 0.8vh);}
+      .text-wrapper.long .muted{font-size:calc(1.3vw + 0.4vh);}
     }
 
     /* === QR sin fondo === */
     .qrwrap{
-      margin-top:2vh;
+      flex-shrink:0;
+      margin-top:1vh;
       display:flex;align-items:center;justify-content:center;
     }
     .qrwrap img{
       width:auto;
-      height:calc(22vh + 5vw);
-      max-height:30vh;
+      height:calc(24vh + 5vw); /* un poco más grande */
+      max-height:32vh;
       filter:drop-shadow(0 0 12px rgba(0,0,0,.3));
     }
 
