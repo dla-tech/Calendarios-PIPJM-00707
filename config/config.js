@@ -1,11 +1,10 @@
-// Config SOLO para estética y textos. Todo el contenido sale del ICS.
 window.CARTELERA_CONFIG = {
   icsUrl:  'calendarios/calendario.ics',
   timeZone:'America/Puerto_Rico',
 
-  slideMs: 12000,   // cada 12s avanza
+  slideMs: 12000,
   pollMs:  5 * 60 * 1000,
-  qrSize:  240,
+  qrSize:  280,
 
   weekRollover: { weekday: 0, hour: 0 },
 
@@ -26,7 +25,7 @@ window.CARTELERA_CONFIG = {
     muted: '#93a4bf',
     accent:'#16a34a',
     warn:'#ef4444',
-    h1:40, h2:26, fs:20, clock:54, radius:18,
-    shadow: '0 20px 60px rgba(0,0,0,.35)'
+    h1:68, h2:46, fs:30, clock:92, radius:24,
+    shadow: '0 24px 80px rgba(0,0,0,.4)'
   }
 };
