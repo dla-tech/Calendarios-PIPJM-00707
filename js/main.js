@@ -1,74 +1,145 @@
 (function(){
   const C = window.CARTELERA_CONFIG || {};
 
+  // === Tema ===
+  (function applyTheme(){
+    const r = document.documentElement.style;
+    const t = C.theme||{};
+    for (const k in t) r.setProperty(`--${k}`, t[k]);
+  })();
+
+  // === Formatos ===
   const fmtDate = new Intl.DateTimeFormat('es-PR',{weekday:'long', day:'2-digit', month:'long', year:'numeric', timeZone:C.timeZone});
   const fmtTime = new Intl.DateTimeFormat('es-PR',{hour:'numeric', minute:'2-digit', hour12:true, timeZone:C.timeZone});
   const toTZ = d => new Date(d.toLocaleString('en-US',{timeZone:C.timeZone}));
   const startOfDay = d => (d=new Date(d), d.setHours(0,0,0,0), d);
+  const addDays = (d,n)=> (d=new Date(d), d.setDate(d.getDate()+n), d);
+  const sameDay = (a,b)=>{a=toTZ(a);b=toTZ(b);return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()};
+  const dateLong = d => fmtDate.format(toTZ(d)).replace(/\b[a-z]/, m=>m.toUpperCase());
+  const hm = d => fmtTime.format(toTZ(d)).toLowerCase().replace(/\s/g,'');
 
-  function parseICS(txt){
-    const blocks = txt.split(/BEGIN:VEVENT/).slice(1).map(b=>'BEGIN:VEVENT'+b.split('END:VEVENT')[0]);
-    const out = [];
-    for(const b of blocks){
-      const get = (k)=>{ const m=b.match(new RegExp('^'+k+'(?:;[^:\\n]*)?:(.*)$','mi')); return m?m[1].trim():''; };
-      const vStart = get('DTSTART');
-      const vEnd   = get('DTEND');
-      const summary = get('SUMMARY');
-      const location = get('LOCATION');
-      const desc = get('DESCRIPTION').replace(/\\n|\\r|•/g,' ').replace(/\s+/g,' ').trim();
-      const url = get('URL');
-      const parseDate = v=>{
-        const dt=v.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})/);
-        return dt?new Date(Date.UTC(dt[1],dt[2]-1,dt[3],dt[4],dt[5])):null;
-      };
-      const start=parseDate(vStart), end=parseDate(vEnd);
-      out.push({start,end,summary,location,desc,url});
-    }
-    return out.sort((a,b)=>a.start-b.start);
+  // === Limpieza texto ===
+  function cleanText(str){
+    if(!str) return '';
+    return String(str)
+      .replace(/\\n/g, '\n')
+      .replace(/\n{2,}/g, '\n')
+      .replace(/[•·]+/g, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
   }
 
-  function formatDate(d){ return fmtDate.format(toTZ(d)); }
-  function formatTime(d){ return fmtTime.format(toTZ(d)).toLowerCase(); }
-
-  function qr(url){
+  function qrFor(url){
     if(!url) return '';
-    return `<div class="qrwrap"><img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(url)}"></div>`;
+    const u = encodeURIComponent(url.trim());
+    const size = C.qrSize || 240;
+    return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${u}`;
   }
+
+  function parseDesc(desc){
+    const out = {preacher:'', manager:''};
+    if(!desc) return out;
+    desc = cleanText(desc);
+    const lines = desc.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+    for(const ln of lines){
+      const p = C.fieldsFromDescription?.preacher?.exec(ln);
+      const m = C.fieldsFromDescription?.manager?.exec(ln);
+      if(p && !out.preacher) out.preacher = p[2]||'';
+      if(m && !out.manager)  out.manager  = m[2]||'';
+    }
+    return out;
+  }
+
+  function isTemple(text){
+    if(!text) return false;
+    const t = String(text).toLowerCase();
+    return (C.templeKeywords||[]).some(k => t.includes(String(k).toLowerCase()));
+  }
+
+  // === Parse ICS ===
+  function parseICS(txt){
+    txt = txt.replace(/(?:\r\n|\n)[ \t]/g,'');
+    const blocks = txt.split(/BEGIN:VEVENT/).slice(1);
+    const out = [];
+    for(const b0 of blocks){
+      const b = 'BEGIN:VEVENT'+b0.split('END:VEVENT')[0];
+      const get = k => { const m=b.match(new RegExp('^'+k+'(?:;[^:\\n]*)?:(.*)$','mi')); return m?m[1].trim():''; };
+      const start = (()=>{
+        const m=b.match(/^DTSTART[^:]*:(\d{8}T\d{6}Z?)$/mi);
+        if(!m) return null;
+        const v=m[1]; const Y=v.slice(0,4), M=v.slice(4,6), D=v.slice(6,8), hh=v.slice(9,11), mm=v.slice(11,13);
+        return new Date(Date.UTC(Y,M-1,D,hh,mm));
+      })();
+      if(!start) continue;
+      out.push({ start, summary:get('SUMMARY'), location:get('LOCATION'), url:get('URL'), desc:get('DESCRIPTION') });
+    }
+    out.sort((a,b)=>a.start-b.start);
+    return out;
+  }
+
+  function groupWeek(events, base){
+    const pr = toTZ(base);
+    const sun = startOfDay(addDays(pr, -pr.getDay()));
+    const days = [...Array(7)].map((_,i)=> addDays(sun,i));
+    const map = new Map(days.map(d=>[startOfDay(d).getTime(), []]));
+    for(const ev of events){
+      for(const d of days){ if(sameDay(ev.start,d)){ map.get(startOfDay(d).getTime()).push(ev); break; } }
+    }
+    return {days, map};
+  }
+
+  let state = {events:[], week:null, idx:0, timer:null};
 
   async function loadICS(){
-    const r = await fetch(C.icsUrl + '?t=' + Date.now(), {cache:'no-store'});
-    const txt = await r.text();
-    return parseICS(txt);
+    try{
+      const r = await fetch(C.icsUrl+'?t='+Date.now(), {cache:'no-store'});
+      const txt = await r.text();
+      state.events = parseICS(txt);
+    }catch(e){ console.error('Error ICS', e); }
   }
 
-  function render(ev){
-    const el = document.getElementById('board');
-    el.innerHTML = `
-      <div class="card">
-        <div class="date">${formatDate(ev.start)}</div>
-        <div class="title">${ev.summary || 'Evento'}</div>
-        <div class="time">${formatTime(ev.start)}${ev.end ? ' — '+formatTime(ev.end) : ''}</div>
-        <div class="muted">
-          ${ev.location ? '<b>Lugar:</b> '+ev.location+'<br>' : ''}
-          ${ev.desc ? ev.desc : ''}
-        </div>
-        ${ev.url ? qr(ev.url) : ''}
-      </div>`;
+  function renderDay(day){
+    const key = startOfDay(day).getTime();
+    const list = state.week.map.get(key)||[];
+    if(!list.length)
+      return `<div class="card active"><div class="date">${dateLong(day)}</div><div class="muted">Sin eventos</div></div>`;
+
+    const parts = list.map(ev=>{
+      const {preacher, manager} = parseDesc(ev.desc);
+      const pinUrl = ev.url && /^https?:\/\//.test(ev.url) ? ev.url : '';
+      const showQr = pinUrl && !isTemple(ev.location);
+      return `
+        <div class="ev">
+          <div class="date">${dateLong(day)}</div>
+          <div class="tag">${hm(ev.start)}</div>
+          <div class="title">${cleanText(ev.summary)}</div>
+          ${ev.location && !/^https?:\/\//.test(ev.location) ? `<div class="muted"><strong>Lugar:</strong> ${cleanText(ev.location)}</div>` : ''}
+          ${manager ? `<div class="muted"><strong>Encargado:</strong> ${cleanText(manager)}</div>` : ''}
+          ${preacher ? `<div class="muted"><strong>Predicador:</strong> ${cleanText(preacher)}</div>` : ''}
+          ${showQr ? `<div class="qrwrap"><img src="${qrFor(pinUrl)}"></div>` : ''}
+        </div>`;
+    });
+    return `<div class="card active">${parts.join('<div class="hr"></div>')}</div>`;
   }
 
-  function updateClock(){
+  function paint(){
+    const day = state.week.days[state.idx];
+    document.getElementById('board').innerHTML = renderDay(day);
     document.getElementById('clockNow').textContent = fmtTime.format(toTZ(new Date()));
+    const s = state.week.days[0], e = state.week.days[6];
+    document.getElementById('weekRange').textContent = `${dateLong(s)} / ${dateLong(e)}`;
   }
 
-  (async function(){
-    updateClock();
-    setInterval(updateClock, 1000);
-    const events = await loadICS();
-    let i = 0;
-    render(events[i]);
-    setInterval(()=>{
-      i = (i+1) % events.length;
-      render(events[i]);
-    }, C.slideMs || 12000);
-  })();
+  async function boot(){
+    await loadICS();
+    state.week = groupWeek(state.events, new Date());
+    paint();
+    clearInterval(state.timer);
+    state.timer = setInterval(()=>{
+      state.idx = (state.idx+1)%7;
+      paint();
+    }, C.slideMs||12000);
+    setInterval(()=>{ document.getElementById('clockNow').textContent = fmtTime.format(toTZ(new Date())); }, 1000);
+  }
+  boot();
 })();
