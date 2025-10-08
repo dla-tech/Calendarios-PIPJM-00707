@@ -2,186 +2,94 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <title>Cartelera semanal PIPJM</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-
+  <title>Cartelera Semanal PIPJM</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="./config/config.js"></script>
 
   <style>
     :root{
-      --bg:#0b1421; --card:#0f1b2c; --text:#e6eefc; --muted:#93a4bf; --accent:#16a34a;
-      --radius:24px; --shadow:0 30px 80px rgba(0,0,0,.5);
+      --bg:#0b1421; --card:#111b2c; --text:#f1f5fb; --muted:#9fb3d4; 
+      --accent:#16a34a; --radius:16px; --shadow:0 10px 25px rgba(0,0,0,.3);
     }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;width:100%;overflow:hidden;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    body{background:var(--bg);color:var(--text);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:20px}
 
-    *{box-sizing:border-box;user-select:none;margin:0;padding:0;}
-    html,body{
-      height:100%;width:100%;overflow:hidden;
-      background:var(--bg);color:var(--text);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
-      display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
-    }
+    header{width:100%;text-align:center;margin-bottom:12px}
+    .clockNow{font-size:38px;font-weight:800;text-align:left;width:90%;margin:0 auto 6px;color:var(--muted)}
+    .weekTitle{font-size:48px;font-weight:900;text-align:center}
+    .range{font-size:20px;color:var(--muted);margin-top:4px}
 
-    /* ====== RELOJ ARRIBA IZQUIERDA ====== */
-    #clockNow{
-      position:fixed;
-      top:1.2vh; left:2vw;
-      font-size:calc(1.8vw + 0.8vh);
-      font-weight:700;
-      color:var(--muted);
-      letter-spacing:0.5px;
-      opacity:0.9;
-      z-index:10;
-    }
-
-    /* ====== ENCABEZADO CENTRADO ====== */
-    .top{
-      text-align:center;
-      margin-top:1.5vh;
-      line-height:1.1;
-    }
-
-    .weekTitle{
-      font-size:calc(2vw + 0.6vh);
-      font-weight:900;
-      text-transform:uppercase;
-      letter-spacing:2px;
-      margin-bottom:0.4vh;
-    }
-
-    #weekRange{
-      color:var(--muted);
-      font-size:calc(1.2vw + 0.5vh);
-      font-weight:600;
-    }
-
-    /* ====== CONTENEDOR PRINCIPAL ====== */
     .board{
-      flex:1;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      width:100%;
-      height:calc(100vh - 10vh);
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap:12px;
+      width:95%;
+      height:75vh;
+      margin-top:20px;
     }
-
-    .card{
+    .dayCard{
       background:var(--card);
-      border:2px solid rgba(255,255,255,.1);
       border-radius:var(--radius);
       box-shadow:var(--shadow);
-      width:88vw;
-      height:78vh;
+      padding:14px;
       display:flex;
       flex-direction:column;
+      align-items:center;
       justify-content:flex-start;
-      align-items:center;
       text-align:center;
-      transition:opacity 0.8s ease;
-      opacity:0;
-      padding:3vw 2vw;
-      overflow:hidden;
     }
-    .card.active{opacity:1;}
-
-    /* === Texto adaptativo === */
-    .text-area{
-      flex:1;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:center;
-      width:100%;
-      overflow:hidden;
-      padding:0 2vw;
-    }
-
-    .date{
-      font-size:calc(2.8vw + 0.8vh);
+    .dayTitle{
+      font-size:20px;
       font-weight:900;
       color:var(--accent);
-      margin-bottom:1.2vh;
-      flex-shrink:0;
+      margin-bottom:8px;
+      text-transform:capitalize;
     }
-    .tag{
-      display:inline-block;
-      background:#122742;
-      color:#cfe0ff;
-      border-radius:999px;
-      padding:0.3em 0.9em;
-      font-size:calc(1.4vw + 0.4vh);
-      font-weight:800;
-      margin-bottom:1.2vh;
-      flex-shrink:0;
-    }
-
-    .text-wrapper{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      flex:1;
+    .event{
+      margin:6px 0;
+      background:rgba(255,255,255,0.03);
+      border-radius:10px;
+      padding:8px;
       width:100%;
-      max-height:40vh;
-      overflow:hidden;
-      text-overflow:ellipsis;
     }
-    .text-wrapper > *{
-      margin:0.3vh 0;
-      transition:font-size .3s ease;
+    .eventTitle{
+      font-size:18px;
+      font-weight:800;
+      margin-bottom:4px;
     }
-
-    .title{
-      font-size:calc(2.3vw + 0.9vh);
-      font-weight:900;
-      line-height:1.2;
-      word-wrap:break-word;
+    .eventTime{
+      font-size:16px;
+      font-weight:700;
+      color:#cbd5e1;
+      margin-bottom:3px;
     }
-    .muted{
+    .eventMeta{
+      font-size:15px;
       color:var(--muted);
-      font-weight:600;
-      font-size:calc(1.4vw + 0.4vh);
-      line-height:1.25;
-      word-wrap:break-word;
-    }
-
-    @supports (-webkit-line-clamp:2){
-      .text-wrapper.long .title{font-size:calc(1.9vw + 0.7vh);}
-      .text-wrapper.long .muted{font-size:calc(1.2vw + 0.4vh);}
-    }
-
-    /* === QR sin fondo === */
-    .qrwrap{
-      flex-shrink:0;
-      margin-top:0.8vh;
-      display:flex;align-items:center;justify-content:center;
     }
     .qrwrap img{
-      width:auto;
-      height:calc(24vh + 5vw);
-      max-height:34vh;
-      filter:drop-shadow(0 0 12px rgba(0,0,0,.3));
+      width:100px;
+      height:100px;
+      margin-top:6px;
+      border-radius:6px;
     }
 
+    @media (max-width:1300px){
+      .board{grid-template-columns: repeat(4, 1fr); height:auto;}
+    }
     @media (max-width:900px){
-      #clockNow{font-size:5vw;}
-      .weekTitle{font-size:6vw;}
-      #weekRange{font-size:4vw;}
-      .date{font-size:6vw;}
-      .title{font-size:4.5vw;}
-      .muted{font-size:3.8vw;}
-      .tag{font-size:4vw;}
-      .card{height:auto;min-height:60vh;}
-      .qrwrap img{max-height:120px;}
+      .board{grid-template-columns: repeat(2, 1fr);}
+      .weekTitle{font-size:32px;}
     }
   </style>
 </head>
 <body>
-  <div id="clockNow">--:--</div>
-
-  <div class="top">
-    <div class="weekTitle">Calendario de la semana</div>
-    <div id="weekRange">—</div>
-  </div>
+  <header>
+    <div class="clockNow" id="clockNow">--:--</div>
+    <div class="weekTitle">CALENDARIO DE LA SEMANA</div>
+    <div class="range" id="weekRange">—</div>
+  </header>
 
   <div class="board" id="board"></div>
 
