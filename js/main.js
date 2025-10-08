@@ -1,145 +1,105 @@
 (function(){
-  const C = window.CARTELERA_CONFIG || {};
-
-  // === Tema ===
-  (function applyTheme(){
-    const r = document.documentElement.style;
-    const t = C.theme||{};
-    for (const k in t) r.setProperty(`--${k}`, t[k]);
-  })();
-
-  // === Formatos ===
+  const C = window.CARTELERA_CONFIG;
   const fmtDate = new Intl.DateTimeFormat('es-PR',{weekday:'long', day:'2-digit', month:'long', year:'numeric', timeZone:C.timeZone});
   const fmtTime = new Intl.DateTimeFormat('es-PR',{hour:'numeric', minute:'2-digit', hour12:true, timeZone:C.timeZone});
   const toTZ = d => new Date(d.toLocaleString('en-US',{timeZone:C.timeZone}));
   const startOfDay = d => (d=new Date(d), d.setHours(0,0,0,0), d);
   const addDays = (d,n)=> (d=new Date(d), d.setDate(d.getDate()+n), d);
-  const sameDay = (a,b)=>{a=toTZ(a);b=toTZ(b);return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()};
-  const dateLong = d => fmtDate.format(toTZ(d)).replace(/\b[a-z]/, m=>m.toUpperCase());
-  const hm = d => fmtTime.format(toTZ(d)).toLowerCase().replace(/\s/g,'');
-
-  // === Limpieza texto ===
-  function cleanText(str){
-    if(!str) return '';
-    return String(str)
-      .replace(/\\n/g, '\n')
-      .replace(/\n{2,}/g, '\n')
-      .replace(/[•·]+/g, '')
-      .replace(/\s{2,}/g, ' ')
-      .trim();
-  }
 
   function qrFor(url){
     if(!url) return '';
-    const u = encodeURIComponent(url.trim());
-    const size = C.qrSize || 240;
-    return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${u}`;
+    const u = encodeURIComponent(url);
+    return `https://api.qrserver.com/v1/create-qr-code/?size=${C.qrSize}x${C.qrSize}&data=${u}`;
   }
-
-  function parseDesc(desc){
-    const out = {preacher:'', manager:''};
-    if(!desc) return out;
-    desc = cleanText(desc);
-    const lines = desc.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
-    for(const ln of lines){
-      const p = C.fieldsFromDescription?.preacher?.exec(ln);
-      const m = C.fieldsFromDescription?.manager?.exec(ln);
-      if(p && !out.preacher) out.preacher = p[2]||'';
-      if(m && !out.manager)  out.manager  = m[2]||'';
-    }
-    return out;
-  }
-
   function isTemple(text){
     if(!text) return false;
     const t = String(text).toLowerCase();
-    return (C.templeKeywords||[]).some(k => t.includes(String(k).toLowerCase()));
+    return (C.templeKeywords||[]).some(k => t.includes(k.toLowerCase()));
   }
-
-  // === Parse ICS ===
-  function parseICS(txt){
-    txt = txt.replace(/(?:\r\n|\n)[ \t]/g,'');
-    const blocks = txt.split(/BEGIN:VEVENT/).slice(1);
-    const out = [];
-    for(const b0 of blocks){
-      const b = 'BEGIN:VEVENT'+b0.split('END:VEVENT')[0];
-      const get = k => { const m=b.match(new RegExp('^'+k+'(?:;[^:\\n]*)?:(.*)$','mi')); return m?m[1].trim():''; };
-      const start = (()=>{
-        const m=b.match(/^DTSTART[^:]*:(\d{8}T\d{6}Z?)$/mi);
-        if(!m) return null;
-        const v=m[1]; const Y=v.slice(0,4), M=v.slice(4,6), D=v.slice(6,8), hh=v.slice(9,11), mm=v.slice(11,13);
-        return new Date(Date.UTC(Y,M-1,D,hh,mm));
-      })();
-      if(!start) continue;
-      out.push({ start, summary:get('SUMMARY'), location:get('LOCATION'), url:get('URL'), desc:get('DESCRIPTION') });
+  function parseDesc(desc){
+    const out = {preacher:'', manager:''};
+    if(!desc) return out;
+    const lines = String(desc).split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+    for(const ln of lines){
+      const mP = ln.match(C.fieldsFromDescription.preacher);
+      if(mP && !out.preacher) out.preacher = (mP[2]||'').trim();
+      const mM = ln.match(C.fieldsFromDescription.manager);
+      if(mM && !out.manager) out.manager = (mM[2]||'').trim();
     }
-    out.sort((a,b)=>a.start-b.start);
     return out;
   }
 
-  function groupWeek(events, base){
-    const pr = toTZ(base);
-    const sun = startOfDay(addDays(pr, -pr.getDay()));
-    const days = [...Array(7)].map((_,i)=> addDays(sun,i));
-    const map = new Map(days.map(d=>[startOfDay(d).getTime(), []]));
-    for(const ev of events){
-      for(const d of days){ if(sameDay(ev.start,d)){ map.get(startOfDay(d).getTime()).push(ev); break; } }
+  function parseICS(txt){
+    const blocks = txt.split(/BEGIN:VEVENT/).slice(1).map(b=>'BEGIN:VEVENT'+b.split('END:VEVENT')[0]);
+    const out = [];
+    for(const b of blocks){
+      const get = k=>{ const m=b.match(new RegExp('^'+k+'(?:;[^:\\n]*)?:(.*)$','mi')); return m?m[1].trim():''; };
+      const v = get('DTSTART'); if(!v) continue;
+      const dt=v.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})/);
+      const d=new Date(Date.UTC(+dt[1],+dt[2]-1,+dt[3],+dt[4]+4,+dt[5]));
+      out.push({start:d, end:null, summary:get('SUMMARY'), location:get('LOCATION'), url:get('URL'), desc:get('DESCRIPTION')});
     }
-    return {days, map};
+    return out.sort((a,b)=>a.start-b.start);
   }
 
-  let state = {events:[], week:null, idx:0, timer:null};
+  function groupWeek(events){
+    const base=new Date(), sunday=startOfDay(addDays(base,-base.getDay()));
+    const days=[...Array(7)].map((_,i)=>addDays(sunday,i));
+    const map=new Map(days.map(d=>[startOfDay(d).getTime(),[]]));
+    for(const ev of events){
+      for(const d of days){
+        if(startOfDay(ev.start).getTime()===startOfDay(d).getTime()){
+          map.get(startOfDay(d).getTime()).push(ev);
+        }
+      }
+    }
+    return {days,map};
+  }
 
   async function loadICS(){
-    try{
-      const r = await fetch(C.icsUrl+'?t='+Date.now(), {cache:'no-store'});
-      const txt = await r.text();
-      state.events = parseICS(txt);
-    }catch(e){ console.error('Error ICS', e); }
+    const r = await fetch(C.icsUrl + '?t='+Date.now(), {cache:'no-store'});
+    const txt = await r.text();
+    return parseICS(txt);
   }
 
-  function renderDay(day){
-    const key = startOfDay(day).getTime();
-    const list = state.week.map.get(key)||[];
-    if(!list.length)
-      return `<div class="card active"><div class="date">${dateLong(day)}</div><div class="muted">Sin eventos</div></div>`;
+  function paintWeek(events){
+    const week = groupWeek(events);
+    const board = document.getElementById('board');
+    board.innerHTML='';
+    const rangeTxt = `${fmtDate.format(week.days[0])} / ${fmtDate.format(week.days[6])}`;
+    document.getElementById('weekRange').textContent=rangeTxt;
 
-    const parts = list.map(ev=>{
-      const {preacher, manager} = parseDesc(ev.desc);
-      const pinUrl = ev.url && /^https?:\/\//.test(ev.url) ? ev.url : '';
-      const showQr = pinUrl && !isTemple(ev.location);
-      return `
-        <div class="ev">
-          <div class="date">${dateLong(day)}</div>
-          <div class="tag">${hm(ev.start)}</div>
-          <div class="title">${cleanText(ev.summary)}</div>
-          ${ev.location && !/^https?:\/\//.test(ev.location) ? `<div class="muted"><strong>Lugar:</strong> ${cleanText(ev.location)}</div>` : ''}
-          ${manager ? `<div class="muted"><strong>Encargado:</strong> ${cleanText(manager)}</div>` : ''}
-          ${preacher ? `<div class="muted"><strong>Predicador:</strong> ${cleanText(preacher)}</div>` : ''}
-          ${showQr ? `<div class="qrwrap"><img src="${qrFor(pinUrl)}"></div>` : ''}
-        </div>`;
-    });
-    return `<div class="card active">${parts.join('<div class="hr"></div>')}</div>`;
-  }
+    for(const day of week.days){
+      const list = week.map.get(startOfDay(day).getTime());
+      const card = document.createElement('div');
+      card.className='dayCard';
+      card.innerHTML=`<div class="dayTitle">${fmtDate.format(day)}</div>`;
 
-  function paint(){
-    const day = state.week.days[state.idx];
-    document.getElementById('board').innerHTML = renderDay(day);
-    document.getElementById('clockNow').textContent = fmtTime.format(toTZ(new Date()));
-    const s = state.week.days[0], e = state.week.days[6];
-    document.getElementById('weekRange').textContent = `${dateLong(s)} / ${dateLong(e)}`;
+      if(!list.length){ card.innerHTML+=`<div class="eventMeta">Sin eventos</div>`; }
+      else{
+        for(const ev of list){
+          const {preacher,manager}=parseDesc(ev.desc);
+          const showQr = ev.url && !isTemple(ev.location);
+          const qr = showQr ? `<div class="qrwrap"><img src="${qrFor(ev.url)}"></div>` : '';
+          card.innerHTML+=`
+            <div class="event">
+              <div class="eventTime">${fmtTime.format(toTZ(ev.start))}</div>
+              <div class="eventTitle">${ev.summary||'Evento'}</div>
+              ${manager?`<div class="eventMeta"><strong>Encargado:</strong> ${manager}</div>`:''}
+              ${preacher?`<div class="eventMeta"><strong>Predicador:</strong> ${preacher}</div>`:''}
+              ${qr}
+            </div>`;
+        }
+      }
+      board.appendChild(card);
+    }
   }
 
   async function boot(){
-    await loadICS();
-    state.week = groupWeek(state.events, new Date());
-    paint();
-    clearInterval(state.timer);
-    state.timer = setInterval(()=>{
-      state.idx = (state.idx+1)%7;
-      paint();
-    }, C.slideMs||12000);
-    setInterval(()=>{ document.getElementById('clockNow').textContent = fmtTime.format(toTZ(new Date())); }, 1000);
+    const evs = await loadICS();
+    paintWeek(evs);
+    setInterval(async()=>paintWeek(await loadICS()), C.pollMs);
+    setInterval(()=>{document.getElementById('clockNow').textContent=fmtTime.format(new Date());},1000);
   }
   boot();
 })();
