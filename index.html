@@ -11,96 +11,79 @@
   <style>
     :root{
       --bg:#0b1421; --card:#0f1b2c; --text:#e6eefc; --muted:#93a4bf; --accent:#16a34a; --warn:#ef4444;
-      --h1:40px; --h2:26px; --fs:20px; --clock:54px; --radius:18px; --shadow:0 20px 60px rgba(0,0,0,.35);
+      --h1:68px; --h2:46px; --fs:30px; --clock:92px; --radius:24px; --shadow:0 24px 80px rgba(0,0,0,.4);
     }
     *{box-sizing:border-box}
-    html,body{height:100%}
+    html,body{height:100%;overflow:hidden}
     body{
-      margin:0; font:500 var(--fs)/1.35 system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      margin:0; font:600 var(--fs)/1.4 system-ui,-apple-system,Segoe UI,Roboto,Arial;
       color:var(--text); background:var(--bg);
       display:flex; align-items:center; justify-content:center; flex-direction:column;
     }
 
     .top{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      gap:6px;
-      margin-bottom:20px;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      text-align:center; gap:12px; margin-bottom:30px;
     }
 
     .clock .now{
-      font-size:var(--clock);
-      font-weight:900;
-      text-align:center;
+      font-size:var(--clock); font-weight:900;
     }
-
     .clock .weekTitle{
-      font-size:calc(var(--h1) + 4px);
-      font-weight:900;
-      text-transform:uppercase;
-      letter-spacing:1px;
-      text-align:center;
+      font-size:calc(var(--h1) + 6px); font-weight:900;
+      text-transform:uppercase; letter-spacing:2px;
     }
-
     .clock .range{
-      color:var(--muted);
-      font-size:calc(var(--fs) + 2px);
-      font-weight:700;
-      text-align:center;
+      color:var(--muted); font-size:calc(var(--fs) + 6px); font-weight:700;
     }
 
     .board{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      height:70vh;
-      overflow:hidden;
+      display:flex; align-items:center; justify-content:center;
+      height:70vh; width:100%;
     }
 
     .card{
       background:var(--card);
-      border:1px solid rgba(255,255,255,.06);
+      border:2px solid rgba(255,255,255,.08);
       border-radius:var(--radius);
-      padding:24px 28px;
+      padding:40px 60px;
       box-shadow:var(--shadow);
-      display:flex;
-      flex-direction:column;
-      gap:14px;
-      max-width:900px;
-      width:100%;
-      max-height:60vh;
-      overflow:hidden;
-      justify-content:center;
-      align-items:center;
-      opacity:0;
-      transition:opacity 0.8s ease;
+      display:flex; flex-direction:column; gap:30px;
+      max-width:1400px; width:90%; height:65vh;
+      justify-content:center; align-items:center;
+      opacity:0; transition:opacity 0.8s ease;
     }
-
     .card.active{opacity:1;}
 
     .date{
-      font-size:calc(var(--h1) + 6px);
-      font-weight:900;
-      color:var(--accent);
-      text-align:center;
+      font-size:calc(var(--h1) + 4px);
+      font-weight:900; color:var(--accent); text-align:center;
     }
-
     .title{
-      font-weight:800;
-      font-size:calc(var(--fs) + 6px);
-      text-align:center;
+      font-weight:800; font-size:calc(var(--fs) + 12px); text-align:center;
     }
-
-    .muted{color:var(--muted); text-align:center;}
-    .tag{display:inline-block; padding:6px 12px; border-radius:999px; background:#122742; color:#cfe0ff; font-weight:800; text-align:center;}
-    .qrwrap{display:flex; align-items:center; justify-content:center; background:#0a1425; border-radius:12px; padding:8px; margin-top:8px;}
-    .qrwrap img{display:block; max-height:120px; width:auto;}
+    .muted{color:var(--muted); text-align:center; font-size:calc(var(--fs) + 4px);}
+    .tag{
+      display:inline-block; padding:10px 24px;
+      border-radius:999px; background:#122742;
+      color:#cfe0ff; font-weight:800; font-size:calc(var(--fs) + 6px);
+    }
+    .qrwrap{
+      display:flex; align-items:center; justify-content:center;
+      background:#0a1425; border-radius:18px; padding:14px;
+      margin-top:16px;
+    }
+    .qrwrap img{
+      display:block; max-height:220px; width:auto;
+    }
 
     @media (max-width:1100px){
-      .card{max-height:55vh;}
+      :root{
+        --h1:40px; --h2:26px; --fs:20px; --clock:54px;
+      }
+      .card{padding:24px; height:auto; max-height:none;}
+      .qrwrap img{max-height:120px;}
     }
   </style>
 </head>
