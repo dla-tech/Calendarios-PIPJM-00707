@@ -1,35 +1,45 @@
 (function(){
   const C = window.CARTELERA_CONFIG || {};
 
-  // === Formato de hora y fecha ===
-  const fmtDate = new Intl.DateTimeFormat('es-PR',{weekday:'long', day:'2-digit', month:'long', timeZone:C.timeZone});
+  // === Tema ===
+  (function applyTheme(){
+    const r = document.documentElement.style;
+    const t = C.theme||{};
+    for (const k in t) r.setProperty(`--${k}`, t[k]);
+  })();
+
+  // === Formatos ===
+  const fmtDate = new Intl.DateTimeFormat('es-PR',{weekday:'long', day:'2-digit', month:'long', year:'numeric', timeZone:C.timeZone});
   const fmtTime = new Intl.DateTimeFormat('es-PR',{hour:'numeric', minute:'2-digit', hour12:true, timeZone:C.timeZone});
   const toTZ = d => new Date(d.toLocaleString('en-US',{timeZone:C.timeZone}));
   const startOfDay = d => (d=new Date(d), d.setHours(0,0,0,0), d);
   const addDays = (d,n)=> (d=new Date(d), d.setDate(d.getDate()+n), d);
   const sameDay = (a,b)=>{a=toTZ(a);b=toTZ(b);return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()};
+  const dateLong = d => fmtDate.format(toTZ(d)).replace(/\b[a-z]/, m=>m.toUpperCase());
+  const hm = d => fmtTime.format(toTZ(d)).toLowerCase().replace(/\s/g,'');
 
-  const dateLong = d => {
-    const s = fmtDate.format(toTZ(d));
-    return s.charAt(0).toUpperCase() + s.slice(1);
-  };
-  const hm = d => fmtTime.format(toTZ(d)).toLowerCase().replace(/\s/g,'').replace('a.m.','am').replace('p.m.','pm');
+  // === Limpieza texto ===
+  function cleanText(str){
+    if(!str) return '';
+    return String(str)
+      .replace(/\\n/g, '\n')
+      .replace(/\n{2,}/g, '\n')
+      .replace(/[•·]+/g, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  }
 
-  // === Utilidades ===
   function qrFor(url){
     if(!url) return '';
-    const u = encodeURIComponent(url);
-    const size = C.qrSize||260;
+    const u = encodeURIComponent(url.trim());
+    const size = C.qrSize || 240;
     return `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${u}`;
   }
-  function isTemple(text){
-    if(!text) return false;
-    const t = text.toLowerCase();
-    return (C.templeKeywords||[]).some(k=>t.includes(k.toLowerCase()));
-  }
+
   function parseDesc(desc){
     const out = {preacher:'', manager:''};
     if(!desc) return out;
+    desc = cleanText(desc);
     const lines = desc.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
     for(const ln of lines){
       const p = C.fieldsFromDescription?.preacher?.exec(ln);
@@ -40,111 +50,96 @@
     return out;
   }
 
-  // === Leer ICS ===
+  function isTemple(text){
+    if(!text) return false;
+    const t = String(text).toLowerCase();
+    return (C.templeKeywords||[]).some(k => t.includes(String(k).toLowerCase()));
+  }
+
+  // === Parse ICS ===
   function parseICS(txt){
-    const unfold = t=>t.replace(/(?:\r\n|\n)[ \t]/g,'');
-    txt = unfold(txt);
+    txt = txt.replace(/(?:\r\n|\n)[ \t]/g,'');
     const blocks = txt.split(/BEGIN:VEVENT/).slice(1);
     const out = [];
     for(const b0 of blocks){
-      const b = 'BEGIN:VEVENT'+b0;
-      const get = k=>{
-        const m=b.match(new RegExp('^'+k+'(?:;[^:\\n]*)?:(.*)$','mi'));
-        return m?m[1].trim():'';
-      };
-      const ds = get('DTSTART'); if(!ds) continue;
-      const d = ds.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})/);
-      if(!d) continue;
-      const [_,Y,M,D,H,Min]=d;
-      const date=new Date(Date.UTC(+Y,+M-1,+D,+H+4,+Min,0));
-      out.push({
-        start:date,
-        summary:get('SUMMARY'),
-        location:get('LOCATION'),
-        url:get('URL'),
-        desc:get('DESCRIPTION')
-      });
+      const b = 'BEGIN:VEVENT'+b0.split('END:VEVENT')[0];
+      const get = k => { const m=b.match(new RegExp('^'+k+'(?:;[^:\\n]*)?:(.*)$','mi')); return m?m[1].trim():''; };
+      const start = (()=>{
+        const m=b.match(/^DTSTART[^:]*:(\d{8}T\d{6}Z?)$/mi);
+        if(!m) return null;
+        const v=m[1]; const Y=v.slice(0,4), M=v.slice(4,6), D=v.slice(6,8), hh=v.slice(9,11), mm=v.slice(11,13);
+        return new Date(Date.UTC(Y,M-1,D,hh,mm));
+      })();
+      if(!start) continue;
+      out.push({ start, summary:get('SUMMARY'), location:get('LOCATION'), url:get('URL'), desc:get('DESCRIPTION') });
     }
     out.sort((a,b)=>a.start-b.start);
     return out;
   }
 
-  function groupWeek(events, baseDate){
-    const pr = toTZ(baseDate);
-    const sun = startOfDay(addDays(pr,-pr.getDay()));
-    const days=[...Array(7)].map((_,i)=>addDays(sun,i));
-    const map=new Map(days.map(d=>[startOfDay(d).getTime(),[]]));
+  function groupWeek(events, base){
+    const pr = toTZ(base);
+    const sun = startOfDay(addDays(pr, -pr.getDay()));
+    const days = [...Array(7)].map((_,i)=> addDays(sun,i));
+    const map = new Map(days.map(d=>[startOfDay(d).getTime(), []]));
     for(const ev of events){
-      for(const d of days){
-        if(sameDay(ev.start,d)) map.get(startOfDay(d).getTime()).push(ev);
-      }
+      for(const d of days){ if(sameDay(ev.start,d)){ map.get(startOfDay(d).getTime()).push(ev); break; } }
     }
-    return {days,map};
+    return {days, map};
   }
 
-  // === Estado ===
-  let state={events:[],week:null,idx:0,timer:null};
+  let state = {events:[], week:null, idx:0, timer:null};
 
-  function renderClock(){
-    document.getElementById('clockNow').textContent=fmtTime.format(toTZ(new Date()));
+  async function loadICS(){
+    try{
+      const r = await fetch(C.icsUrl+'?t='+Date.now(), {cache:'no-store'});
+      const txt = await r.text();
+      state.events = parseICS(txt);
+    }catch(e){ console.error('Error ICS', e); }
   }
 
   function renderDay(day){
-    const key=startOfDay(day).getTime();
-    const list=state.week.map.get(key)||[];
-    if(!list.length) return `<div class="card"><div class="date">${dateLong(day)}</div><div class="muted">Sin eventos</div></div>`;
+    const key = startOfDay(day).getTime();
+    const list = state.week.map.get(key)||[];
+    if(!list.length)
+      return `<div class="card active"><div class="date">${dateLong(day)}</div><div class="muted">Sin eventos</div></div>`;
 
-    const parts=list.map(ev=>{
-      const time=hm(ev.start);
-      const {preacher,manager}=parseDesc(ev.desc);
-      const showQr=ev.url && !isTemple(ev.location);
+    const parts = list.map(ev=>{
+      const {preacher, manager} = parseDesc(ev.desc);
+      const pinUrl = ev.url && /^https?:\/\//.test(ev.url) ? ev.url : '';
+      const showQr = pinUrl && !isTemple(ev.location);
       return `
         <div class="ev">
           <div class="date">${dateLong(day)}</div>
-          <div class="tag">${time}</div>
-          <div class="title">${ev.summary||'Evento'}</div>
-          ${ev.location?`<div class="muted"><strong>Lugar:</strong> ${ev.location}</div>`:''}
-          ${manager?`<div class="muted"><strong>Encargado:</strong> ${manager}</div>`:''}
-          ${preacher?`<div class="muted"><strong>Predicador:</strong> ${preacher}</div>`:''}
-          ${showQr?`<div class="qrwrap"><img src="${qrFor(ev.url)}"></div>`:''}
+          <div class="tag">${hm(ev.start)}</div>
+          <div class="title">${cleanText(ev.summary)}</div>
+          ${ev.location && !/^https?:\/\//.test(ev.location) ? `<div class="muted"><strong>Lugar:</strong> ${cleanText(ev.location)}</div>` : ''}
+          ${manager ? `<div class="muted"><strong>Encargado:</strong> ${cleanText(manager)}</div>` : ''}
+          ${preacher ? `<div class="muted"><strong>Predicador:</strong> ${cleanText(preacher)}</div>` : ''}
+          ${showQr ? `<div class="qrwrap"><img src="${qrFor(pinUrl)}"></div>` : ''}
         </div>`;
     });
-    return `<div class="card">${parts.join('<div class="hr"></div>')}</div>`;
+    return `<div class="card active">${parts.join('<div class="hr"></div>')}</div>`;
   }
 
   function paint(){
-    renderClock();
-    const d=state.week.days[state.idx];
-    document.getElementById('weekRange').textContent=dateLong(d);
-    document.getElementById('board').innerHTML=renderDay(d);
-  }
-
-  function advance(){
-    state.idx=(state.idx+1)%7;
-    paint();
-  }
-
-  async function loadICS(){
-    const url=C.icsUrl+(C.icsUrl.includes('?')?'&':'?')+'t='+Date.now();
-    try{
-      const r=await fetch(url,{cache:'no-store'});
-      const txt=await r.text();
-      state.events=parseICS(txt);
-      document.getElementById('status').textContent='ICS OK';
-    }catch(e){
-      document.getElementById('status').textContent='ICS ERROR';
-      console.error(e);
-    }
+    const day = state.week.days[state.idx];
+    document.getElementById('board').innerHTML = renderDay(day);
+    document.getElementById('clockNow').textContent = fmtTime.format(toTZ(new Date()));
+    const s = state.week.days[0], e = state.week.days[6];
+    document.getElementById('weekRange').textContent = `${dateLong(s)} / ${dateLong(e)}`;
   }
 
   async function boot(){
     await loadICS();
-    state.week=groupWeek(state.events,new Date());
+    state.week = groupWeek(state.events, new Date());
     paint();
     clearInterval(state.timer);
-    state.timer=setInterval(advance,C.slideMs||12000);
-    setInterval(renderClock,1000);
+    state.timer = setInterval(()=>{
+      state.idx = (state.idx+1)%7;
+      paint();
+    }, C.slideMs||12000);
+    setInterval(()=>{ document.getElementById('clockNow').textContent = fmtTime.format(toTZ(new Date())); }, 1000);
   }
-
   boot();
 })();
