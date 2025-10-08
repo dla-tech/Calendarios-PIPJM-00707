@@ -21,44 +21,47 @@
       display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
     }
 
-    /* Escala general */
-    body{font-size:calc(0.8vw + 1vh);}
+    /* ====== RELOJ ARRIBA IZQUIERDA ====== */
+    #clockNow{
+      position:fixed;
+      top:1.2vh; left:2vw;
+      font-size:calc(1.8vw + 0.8vh);
+      font-weight:700;
+      color:var(--muted);
+      letter-spacing:0.5px;
+      opacity:0.9;
+      z-index:10;
+    }
 
-    /* ======= Cabecera compacta ======= */
+    /* ====== ENCABEZADO CENTRADO ====== */
     .top{
       text-align:center;
       margin-top:1.5vh;
-      margin-bottom:1.5vh;
       line-height:1.1;
     }
 
-    #clockNow{
-      font-size:calc(4vw + 1.5vh); /* un poco más pequeño */
-      font-weight:900;
-      letter-spacing:1px;
-    }
     .weekTitle{
-      font-size:calc(2.2vw + 0.8vh); /* más compacto */
+      font-size:calc(2vw + 0.6vh);
       font-weight:900;
       text-transform:uppercase;
       letter-spacing:2px;
-      margin-top:0.3vh;
-    }
-    #weekRange{
-      color:var(--muted);
-      font-size:calc(1.4vw + 0.6vh); /* más pequeño */
-      font-weight:700;
-      margin-top:0.3vh;
+      margin-bottom:0.4vh;
     }
 
-    /* ======= Contenedor principal ======= */
+    #weekRange{
+      color:var(--muted);
+      font-size:calc(1.2vw + 0.5vh);
+      font-weight:600;
+    }
+
+    /* ====== CONTENEDOR PRINCIPAL ====== */
     .board{
       flex:1;
       display:flex;
       align-items:center;
       justify-content:center;
       width:100%;
-      height:calc(100vh - 20vh); /* más área para evento */
+      height:calc(100vh - 10vh);
     }
 
     .card{
@@ -66,8 +69,8 @@
       border:2px solid rgba(255,255,255,.1);
       border-radius:var(--radius);
       box-shadow:var(--shadow);
-      width:85vw;
-      height:72vh; /* más alto */
+      width:88vw;
+      height:78vh;
       display:flex;
       flex-direction:column;
       justify-content:flex-start;
@@ -93,10 +96,10 @@
     }
 
     .date{
-      font-size:calc(3vw + 1vh);
+      font-size:calc(2.8vw + 0.8vh);
       font-weight:900;
       color:var(--accent);
-      margin-bottom:1.3vh;
+      margin-bottom:1.2vh;
       flex-shrink:0;
     }
     .tag{
@@ -105,9 +108,9 @@
       color:#cfe0ff;
       border-radius:999px;
       padding:0.3em 0.9em;
-      font-size:calc(1.7vw + 0.4vh);
+      font-size:calc(1.4vw + 0.4vh);
       font-weight:800;
-      margin-bottom:1.3vh;
+      margin-bottom:1.2vh;
       flex-shrink:0;
     }
 
@@ -118,7 +121,7 @@
       justify-content:center;
       flex:1;
       width:100%;
-      max-height:38vh; /* más espacio */
+      max-height:40vh;
       overflow:hidden;
       text-overflow:ellipsis;
     }
@@ -128,40 +131,41 @@
     }
 
     .title{
-      font-size:calc(2.6vw + 1vh);
+      font-size:calc(2.3vw + 0.9vh);
       font-weight:900;
-      line-height:1.25;
+      line-height:1.2;
       word-wrap:break-word;
     }
     .muted{
       color:var(--muted);
       font-weight:600;
-      font-size:calc(1.5vw + 0.4vh);
+      font-size:calc(1.4vw + 0.4vh);
       line-height:1.25;
       word-wrap:break-word;
     }
 
     @supports (-webkit-line-clamp:2){
-      .text-wrapper.long .title{font-size:calc(2vw + 0.8vh);}
-      .text-wrapper.long .muted{font-size:calc(1.3vw + 0.4vh);}
+      .text-wrapper.long .title{font-size:calc(1.9vw + 0.7vh);}
+      .text-wrapper.long .muted{font-size:calc(1.2vw + 0.4vh);}
     }
 
     /* === QR sin fondo === */
     .qrwrap{
       flex-shrink:0;
-      margin-top:1vh;
+      margin-top:0.8vh;
       display:flex;align-items:center;justify-content:center;
     }
     .qrwrap img{
       width:auto;
-      height:calc(24vh + 5vw); /* un poco más grande */
-      max-height:32vh;
+      height:calc(24vh + 5vw);
+      max-height:34vh;
       filter:drop-shadow(0 0 12px rgba(0,0,0,.3));
     }
 
     @media (max-width:900px){
-      #clockNow{font-size:8vw;}
+      #clockNow{font-size:5vw;}
       .weekTitle{font-size:6vw;}
+      #weekRange{font-size:4vw;}
       .date{font-size:6vw;}
       .title{font-size:4.5vw;}
       .muted{font-size:3.8vw;}
@@ -172,8 +176,9 @@
   </style>
 </head>
 <body>
+  <div id="clockNow">--:--</div>
+
   <div class="top">
-    <div id="clockNow">--:--</div>
     <div class="weekTitle">Calendario de la semana</div>
     <div id="weekRange">—</div>
   </div>
