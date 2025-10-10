@@ -8,7 +8,7 @@
     for (const k in t) r.setProperty(`--${k}`, t[k]);
   })();
 
-  // === Función sleep ===
+  // === sleep ===
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   // === Formatos ===
@@ -111,18 +111,22 @@
       const {preacher, manager} = parseDesc(ev.desc);
       const pinUrl = ev.url && /^https?:\/\//.test(ev.url) ? ev.url : '';
       const showQr = pinUrl && !isTemple(ev.location);
+
+      // QR a la derecha del texto:
       return `
-        <div class="ev">
-          <div class="date">${dateLong(day)}</div>
-          <div class="tag">${hm(ev.start)}</div>
-          <div class="title">${cleanText(ev.summary)}</div>
-          ${ev.location && !/^https?:\/\//.test(ev.location) ? `<div class="muted"><strong>Lugar:</strong> ${cleanText(ev.location)}</div>` : ''}
-          ${manager ? `<div class="muted"><strong>Encargado:</strong> ${cleanText(manager)}</div>` : ''}
-          ${preacher ? `<div class="muted"><strong>Predicador:</strong> ${cleanText(preacher)}</div>` : ''}
-          ${showQr ? `<div class="qrwrap"><img src="${qrFor(pinUrl)}"></div>` : ''}
+        <div class="ev" style="display:flex;align-items:center;justify-content:space-between;gap:3vw;flex-wrap:wrap;">
+          <div class="info" style="flex:1;min-width:240px;">
+            <div class="date" style="color:var(--accent);font-weight:900;font-size:calc(2vw + 0.5vh);">${dateLong(day)}</div>
+            <div class="tag" style="display:inline-block;margin:0.6vh 0;background:#122742;padding:0.4em 1em;border-radius:999px;">${hm(ev.start)}</div>
+            <div class="title" style="font-weight:900;font-size:calc(1.6vw + 0.8vh);margin-top:0.6vh;">${cleanText(ev.summary)}</div>
+            ${ev.location && !/^https?:\/\//.test(ev.location) ? `<div class="muted"><strong>Lugar:</strong> ${cleanText(ev.location)}</div>` : ''}
+            ${manager ? `<div class="muted"><strong>Encargado:</strong> ${cleanText(manager)}</div>` : ''}
+            ${preacher ? `<div class="muted"><strong>Predicador:</strong> ${cleanText(preacher)}</div>` : ''}
+          </div>
+          ${showQr ? `<div class="qrwrap" style="flex-shrink:0;"><img src="${qrFor(pinUrl)}" style="max-height:200px;border-radius:12px;"></div>` : ''}
         </div>`;
     });
-    return `<div class="card active">${parts.join('<div class="hr"></div>')}</div>`;
+    return `<div class="card active" style="padding:3vw;">${parts.join('<hr style="border:none;height:2px;background:rgba(255,255,255,.08);margin:2vh 0;">')}</div>`;
   }
 
   function paint(){
@@ -195,7 +199,7 @@
     // reloj en vivo
     setInterval(()=>{ document.getElementById('clockNow').textContent = fmtTime.format(toTZ(new Date())); }, 1000);
 
-    // bucle principal con sleep
+    // bucle principal
     (async function mainLoop(){
       while(state.running){
         await sleep(C.slideMs || 12000);
@@ -206,7 +210,7 @@
       }
     })();
 
-    // verificación periódica del ICS
+    // verificación del ICS
     (async function checkLoop(){
       while(state.running){
         await sleep(C.pollMs || 60000);
