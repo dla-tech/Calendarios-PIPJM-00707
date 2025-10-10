@@ -8,6 +8,9 @@
     for (const k in t) r.setProperty(`--${k}`, t[k]);
   })();
 
+  // === Función sleep ===
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
   // === Formatos ===
   const fmtDate = new Intl.DateTimeFormat('es-PR',{weekday:'long', day:'2-digit', month:'long', year:'numeric', timeZone:C.timeZone});
   const fmtTime = new Intl.DateTimeFormat('es-PR',{hour:'numeric', minute:'2-digit', hour12:true, timeZone:C.timeZone});
@@ -18,7 +21,7 @@
   const dateLong = d => fmtDate.format(toTZ(d)).replace(/\b[a-z]/, m=>m.toUpperCase());
   const hm = d => fmtTime.format(toTZ(d)).toLowerCase().replace(/\s/g,'');
 
-  // === Limpieza texto ===
+  // === Utilidades ===
   function cleanText(str){
     if(!str) return '';
     return String(str)
@@ -88,14 +91,14 @@
     return {days, map};
   }
 
-  let state = {events:[], week:null, idx:0, timer:null};
+  let state = {events:[], week:null, idx:0, lastICS:null, running:true};
 
   async function loadICS(){
     try{
       const r = await fetch(C.icsUrl+'?t='+Date.now(), {cache:'no-store'});
       const txt = await r.text();
-      state.events = parseICS(txt);
-    }catch(e){ console.error('Error ICS', e); }
+      return txt;
+    }catch(e){ console.error('Error ICS', e); return ''; }
   }
 
   function renderDay(day){
@@ -131,15 +134,42 @@
   }
 
   async function boot(){
-    await loadICS();
+    const txt = await loadICS();
+    state.lastICS = txt;
+    state.events = parseICS(txt);
     state.week = groupWeek(state.events, new Date());
     paint();
-    clearInterval(state.timer);
-    state.timer = setInterval(()=>{
-      state.idx = (state.idx+1)%7;
-      paint();
-    }, C.slideMs||12000);
+
+    // reloj en vivo
     setInterval(()=>{ document.getElementById('clockNow').textContent = fmtTime.format(toTZ(new Date())); }, 1000);
+
+    // bucle principal secuencial con sleep
+    (async function mainLoop(){
+      while(state.running){
+        await sleep(C.slideMs || 12000);
+        state.idx = (state.idx + 1) % 7;
+        paint();
+      }
+    })();
+
+    // verificación periódica del ICS
+    (async function checkLoop(){
+      while(state.running){
+        await sleep(C.pollMs || 60000);
+        try {
+          const newTxt = await loadICS();
+          if(newTxt && newTxt !== state.lastICS){
+            console.log("🔄 Detectado cambio en el ICS, recargando cartelera...");
+            state.lastICS = newTxt;
+            state.events = parseICS(newTxt);
+            state.week = groupWeek(state.events, new Date());
+            state.idx = 0;
+            paint();
+          }
+        } catch(e){ console.error("Error al verificar ICS", e); }
+      }
+    })();
   }
+
   boot();
 })();
