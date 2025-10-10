@@ -91,7 +91,7 @@
     return {days, map};
   }
 
-  let state = {events:[], week:null, idx:0, lastICS:null, running:true};
+  let state = {events:[], week:null, idx:0, lastICS:null, running:true, paused:false};
 
   async function loadICS(){
     try{
@@ -133,22 +133,76 @@
     document.getElementById('weekRange').textContent = `${dateLong(s)} / ${dateLong(e)}`;
   }
 
+  // === Botones flotantes ===
+  function createControls(){
+    const div = document.createElement('div');
+    div.id = 'controls';
+    div.innerHTML = `
+      <button id="prevDay">⬅️</button>
+      <button id="pauseBtn">⏸️</button>
+      <button id="nextDay">➡️</button>
+    `;
+    document.body.appendChild(div);
+
+    const style = document.createElement('style');
+    style.textContent = `
+      #controls{
+        position:fixed;
+        bottom:2vh;
+        right:3vw;
+        display:flex;
+        gap:10px;
+        z-index:50;
+      }
+      #controls button{
+        background:var(--accent);
+        color:#fff;
+        border:none;
+        border-radius:50%;
+        width:58px;
+        height:58px;
+        font-size:22px;
+        cursor:pointer;
+        box-shadow:0 4px 14px rgba(0,0,0,.4);
+        transition:transform .2s, background .2s;
+      }
+      #controls button:hover{transform:scale(1.1);background:#1fd15d;}
+    `;
+    document.head.appendChild(style);
+
+    document.getElementById('prevDay').onclick = ()=>{ 
+      state.idx = (state.idx - 1 + 7) % 7; 
+      paint(); 
+    };
+    document.getElementById('nextDay').onclick = ()=>{ 
+      state.idx = (state.idx + 1) % 7; 
+      paint(); 
+    };
+    document.getElementById('pauseBtn').onclick = ()=>{
+      state.paused = !state.paused;
+      document.getElementById('pauseBtn').textContent = state.paused ? '▶️' : '⏸️';
+    };
+  }
+
   async function boot(){
     const txt = await loadICS();
     state.lastICS = txt;
     state.events = parseICS(txt);
     state.week = groupWeek(state.events, new Date());
     paint();
+    createControls();
 
     // reloj en vivo
     setInterval(()=>{ document.getElementById('clockNow').textContent = fmtTime.format(toTZ(new Date())); }, 1000);
 
-    // bucle principal secuencial con sleep
+    // bucle principal con sleep
     (async function mainLoop(){
       while(state.running){
         await sleep(C.slideMs || 12000);
-        state.idx = (state.idx + 1) % 7;
-        paint();
+        if(!state.paused){
+          state.idx = (state.idx + 1) % 7;
+          paint();
+        }
       }
     })();
 
